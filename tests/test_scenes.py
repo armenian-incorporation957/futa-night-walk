@@ -77,7 +77,7 @@ class SceneTests(unittest.TestCase):
 
         self._click(scene, rect.center)
         self.assertTrue(scene.show_help)
-        self._click(scene, rect.center)
+        self._click(scene, scene._help_close_rect().center)
         self.assertFalse(scene.show_help)
 
     def test_menu_scene_help_tab_switches_to_skills(self) -> None:
@@ -88,6 +88,19 @@ class SceneTests(unittest.TestCase):
         self._click(scene, rect.center)
 
         self.assertEqual(scene.help_tab, "skills")
+        self.assertIsNotNone(scene.selected_help_skill_id)
+        self.assertEqual(len(scene._skills_for_group(scene.selected_help_group)), 5)
+
+    def test_menu_scene_skill_group_click_switches_selected_skill_pool(self) -> None:
+        scene = MenuScene(self.app)
+        scene.show_help = True
+        scene.help_tab = "skills"
+        rect = scene._skill_group_tab_rect("burst")
+
+        self._click(scene, rect.center)
+
+        self.assertEqual(scene.selected_help_group, "burst")
+        self.assertIn(scene.selected_help_skill_id, scene._skills_for_group("burst"))
 
     def test_menu_scene_enter_no_longer_starts_game(self) -> None:
         scene = MenuScene(self.app)
@@ -103,10 +116,20 @@ class SceneTests(unittest.TestCase):
         scene.handle_event(self.pygame.event.Event(self.pygame.MOUSEMOTION, {"pos": rect.center}))
         self.assertEqual(scene.hovered_button, "help")
 
-    def test_run_scene_intro_transitions_to_starter_select(self) -> None:
+    def test_run_scene_stage_intro_waits_until_dismissed(self) -> None:
         scene = RunScene(self.app, game_mode="campaign")
 
         scene.update(1.0)
+
+        self.assertEqual(scene.run_state.stage_state, "stage_intro")
+        self.assertEqual(scene.run_state.pending_upgrade_choices, [])
+
+    def test_run_scene_dismissed_intro_transitions_to_starter_select(self) -> None:
+        scene = RunScene(self.app, game_mode="campaign")
+        event = self.pygame.event.Event(self.pygame.KEYDOWN, {"key": self.pygame.K_RETURN})
+
+        scene.handle_event(event)
+        scene.update(0.016)
 
         self.assertEqual(scene.run_state.stage_state, "starter_select")
         self.assertEqual(scene.run_state.pending_upgrade_choices, scene.run_state.stage_skill_pool)
@@ -115,7 +138,8 @@ class SceneTests(unittest.TestCase):
     def test_run_scene_maxing_last_skill_starts_transition_and_next_stage(self) -> None:
         scene = RunScene(self.app, game_mode="campaign")
         scene.player.hp = 40
-        scene.update(1.0)
+        scene.handle_event(self.pygame.event.Event(self.pygame.KEYDOWN, {"key": self.pygame.K_RETURN}))
+        scene.update(0.016)
         final_skill = scene.run_state.stage_skill_pool[0]
         scene.run_state.stage_skill_levels = {skill_id: 3 for skill_id in scene.run_state.stage_skill_pool}
         scene.run_state.stage_skill_levels[final_skill] = 2
@@ -129,7 +153,7 @@ class SceneTests(unittest.TestCase):
         self.assertEqual(scene.run_state.stage_index, 2)
         self.assertEqual(scene.player.hp, 60)
         self.assertEqual(scene.player.level, 1)
-        self.assertEqual(scene.run_state.stage_state, "intro")
+        self.assertEqual(scene.run_state.stage_state, "stage_intro")
 
     def test_run_scene_campaign_completion_requests_victory_scene(self) -> None:
         scene = RunScene(self.app, game_mode="campaign")

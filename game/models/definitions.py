@@ -68,7 +68,7 @@ class RunState:
     game_mode: str = "campaign"
     stage_index: int = 1
     stage_cycle: int = 1
-    stage_state: str = "intro"
+    stage_state: str = "stage_intro"
     level: int = 1
     exp: int = 0
     pending_stage_intro: bool = True

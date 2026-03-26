@@ -57,8 +57,8 @@ class RunScene(BaseScene):
         stage_skill_pool = self.progression_system.get_stage_skill_pool(stage_index)
         self.run_state.stage_index = stage_index
         self.run_state.stage_cycle = stage_cycle
-        self.run_state.stage_state = "intro"
-        self.run_state.stage_transition_timer = 1.0
+        self.run_state.stage_state = "stage_intro"
+        self.run_state.stage_transition_timer = 0.0
         self.run_state.pending_stage_intro = True
         self.run_state.stage_skill_pool = stage_skill_pool
         self.run_state.stage_skill_levels = {skill_id: 0 for skill_id in stage_skill_pool}
@@ -112,6 +112,10 @@ class RunScene(BaseScene):
             return 5
         return 3
 
+    def _dismiss_stage_intro(self) -> None:
+        if self.run_state.stage_state == "stage_intro":
+            self.run_state.pending_stage_intro = False
+
     def _resolve_upgrade_selection(self, choice_index: int) -> None:
         choices = self.run_state.pending_upgrade_choices
         if not (0 <= choice_index < len(choices)):
@@ -147,6 +151,14 @@ class RunScene(BaseScene):
             self.request_scene_change("menu")
             return
 
+        if self.run_state.stage_state == "stage_intro":
+            if event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                self._dismiss_stage_intro()
+            elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                if self._stage_intro_close_rect().collidepoint(event.pos):
+                    self._dismiss_stage_intro()
+            return
+
         if not self.run_state.pending_upgrade_choices:
             return
 
@@ -176,9 +188,8 @@ class RunScene(BaseScene):
             )
             return
 
-        if self.run_state.stage_state == "intro":
-            self.run_state.stage_transition_timer = max(0.0, self.run_state.stage_transition_timer - dt)
-            if self.run_state.stage_transition_timer == 0.0:
+        if self.run_state.stage_state == "stage_intro":
+            if not self.run_state.pending_stage_intro:
                 self.run_state.stage_state = "starter_select"
                 self.run_state.pending_upgrade_choices = list(self.run_state.stage_skill_pool)
             self._sync_run_state()
@@ -271,9 +282,9 @@ class RunScene(BaseScene):
         self.player.draw(surface)
 
         self.hud.draw(surface, self.app, self.player, self.run_state)
-        if self.run_state.pending_upgrade_choices:
+        if self.run_state.stage_state in {"starter_select", "upgrade"} and self.run_state.pending_upgrade_choices:
             self.upgrade_panel.draw(surface, self.app, self.run_state)
-        if self.run_state.pending_stage_intro or self.run_state.stage_state == "transition":
+        if self.run_state.stage_state in {"stage_intro", "transition"}:
             self._draw_stage_overlay(surface)
 
     def _draw_stage_overlay(self, surface) -> None:
@@ -284,7 +295,7 @@ class RunScene(BaseScene):
         overlay.fill((0, 0, 0, 135))
         surface.blit(overlay, (0, 0))
 
-        panel_rect = pygame.Rect(config.width // 2 - 260, config.height // 2 - 150, 520, 300)
+        panel_rect = pygame.Rect(config.width // 2 - 280, config.height // 2 - 160, 560, 320)
         pygame.draw.rect(surface, (21, 27, 36), panel_rect, border_radius=22)
         pygame.draw.rect(surface, (123, 158, 210), panel_rect, 2, border_radius=22)
 
@@ -299,28 +310,39 @@ class RunScene(BaseScene):
                 True,
                 (223, 232, 240),
             )
-            surface.blit(title, title.get_rect(center=(config.width // 2, panel_rect.y + 72)))
-            surface.blit(subtitle, subtitle.get_rect(center=(config.width // 2, panel_rect.y + 128)))
+            surface.blit(title, title.get_rect(center=(config.width // 2, panel_rect.y + 86)))
+            surface.blit(subtitle, subtitle.get_rect(center=(config.width // 2, panel_rect.y + 144)))
             return
 
+        mode_text = "\u95ef\u5173" if self.run_state.game_mode == "campaign" else "\u65e0\u9650"
         title = title_font.render(
-            f"\u7b2c {self.run_state.stage_index} \u5173  "
-            f"({ '\u95ef\u5173' if self.run_state.game_mode == 'campaign' else '\u65e0\u9650' })",
+            f"\u7b2c {self.run_state.stage_index} \u5173 ({mode_text})",
             True,
             (242, 231, 194),
         )
         subtitle = body_font.render("\u672c\u5173\u53ef\u5347\u7ea7\u7684 5 \u4e2a\u6280\u80fd", True, (223, 232, 240))
-        surface.blit(title, title.get_rect(center=(config.width // 2, panel_rect.y + 42)))
-        surface.blit(subtitle, subtitle.get_rect(center=(config.width // 2, panel_rect.y + 78)))
+        surface.blit(title, title.get_rect(center=(config.width // 2, panel_rect.y + 40)))
+        surface.blit(subtitle, subtitle.get_rect(center=(config.width // 2, panel_rect.y + 76)))
 
         for index, skill_id in enumerate(self.run_state.stage_skill_pool):
             skill = self.app.skill_defs[skill_id]
             text = small_font.render(f"{index + 1}. {skill.name}  -  {skill.description}", True, (194, 205, 218))
-            surface.blit(text, (panel_rect.x + 28, panel_rect.y + 118 + index * 28))
+            surface.blit(text, (panel_rect.x + 32, panel_rect.y + 116 + index * 28))
+
+        close_rect = self._stage_intro_close_rect()
+        pygame.draw.rect(surface, (70, 87, 108), close_rect, border_radius=12)
+        pygame.draw.rect(surface, (160, 180, 214), close_rect, 2, border_radius=12)
+        close_text = small_font.render("\u7ee7\u7eed", True, (238, 243, 248))
+        surface.blit(close_text, close_text.get_rect(center=close_rect.center))
 
         footer = small_font.render(
-            "\u5f39\u7a97\u7ed3\u675f\u540e\u5148\u9009 1 \u4e2a\u8d77\u59cb\u6280\u80fd",
+            "\u6309 Enter / Space \u6216\u70b9\u51fb\u6309\u94ae\u5173\u95ed\uff0c\u4e0b\u4e00\u5e55\u8fdb\u5165\u8d77\u59cb\u6280\u80fd\u9009\u62e9",
             True,
             (172, 185, 201),
         )
         surface.blit(footer, footer.get_rect(center=(config.width // 2, panel_rect.bottom - 28)))
+
+    def _stage_intro_close_rect(self):
+        pygame = require_pygame()
+        config = self.app.config
+        return pygame.Rect(config.width // 2 - 58, config.height // 2 + 96, 116, 38)
