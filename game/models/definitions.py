@@ -20,10 +20,12 @@ class SkillDef:
     id: str
     name: str
     description: str
+    group: str
     cooldown: float
     damage: int
     projectile_speed: float
     behavior_type: str
+    level_scaling: dict[int, dict[str, int | float]] = field(default_factory=dict)
     duration: float = 1.6
     shots: int = 1
     spread_angle: float = 18.0
@@ -41,10 +43,12 @@ class SkillDef:
     orbit_speed: float = 0.0
     homing_strength: float = 0.0
     hit_stun: float = 0.0
+    healing_amount: float = 0.0
 
 
 @dataclass(frozen=True)
 class WaveDef:
+    stage: int
     time: float
     enemy_id: str
     count: int
@@ -61,9 +65,17 @@ class PlayerStats:
 @dataclass
 class RunState:
     current_time: float = 0.0
+    game_mode: str = "campaign"
+    stage_index: int = 1
+    stage_cycle: int = 1
+    stage_state: str = "intro"
     level: int = 1
     exp: int = 0
+    pending_stage_intro: bool = True
     selected_skills: list[str] = field(default_factory=list)
+    stage_skill_pool: list[str] = field(default_factory=list)
+    stage_skill_levels: dict[str, int] = field(default_factory=dict)
+    stage_transition_timer: float = 0.0
     active_entities: dict[str, int] = field(
         default_factory=lambda: {
             "enemies": 0,

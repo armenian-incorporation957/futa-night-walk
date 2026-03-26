@@ -25,6 +25,7 @@ class Player(Entity):
         self.exp = 0
         self.exp_to_next = 20
         self.owned_skills: list[str] = []
+        self.skill_levels: dict[str, int] = {}
         self.skill_timers: dict[str, float] = {}
         self.hurt_cooldown = 0.0
 

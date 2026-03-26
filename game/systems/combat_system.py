@@ -38,6 +38,10 @@ class CombatSystem:
                 continue
 
             skill = skill_defs[skill_id]
+            if skill.behavior_type == "healing_mark":
+                player.hp = min(player.max_hp, player.hp + skill.healing_amount)
+                player.skill_timers[skill_id] = skill.cooldown
+                continue
             if skill.behavior_type == "orbit_guard":
                 active_orbits = [
                     projectile

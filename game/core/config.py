@@ -15,3 +15,4 @@ class GameConfig:
     player_spawn: tuple[float, float] = (480.0, 270.0)
     arena_padding: int = 24
     data_dir: Path = Path(__file__).resolve().parents[2] / "assets" / "data"
+    save_dir: Path = Path(__file__).resolve().parents[2] / "save_data"

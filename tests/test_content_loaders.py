@@ -28,9 +28,12 @@ class ContentLoaderTests(unittest.TestCase):
 
         self.assertIn("paper_spirit", enemies)
         self.assertIn("fire_talisman", skills)
-        self.assertGreaterEqual(len(waves), 3)
+        self.assertEqual(len(skills), 20)
+        self.assertGreaterEqual(len(waves), 8)
         self.assertEqual(enemies["paper_spirit"].name, "\u7eb8\u7075")
         self.assertEqual(skills["fire_talisman"].name, "\u706b\u7b26")
+        self.assertEqual(skills["fire_talisman"].level_scaling[3]["cooldown"], 0.34)
+        self.assertTrue(all(wave.stage > 0 for wave in waves))
 
     def test_enemy_loader_rejects_duplicates(self) -> None:
         payload = [
@@ -64,7 +67,7 @@ class ContentLoaderTests(unittest.TestCase):
             load_skills(path)
 
     def test_waves_loader_rejects_bad_counts(self) -> None:
-        payload = [{"time": 0, "enemy_id": "paper_spirit", "count": 0, "interval": 1}]
+        payload = [{"stage": 1, "time": 0, "enemy_id": "paper_spirit", "count": 0, "interval": 1}]
         path = self._write_payload("waves.json", payload)
         with self.assertRaises(ValueError):
             load_waves(path)

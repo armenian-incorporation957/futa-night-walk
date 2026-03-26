@@ -9,11 +9,14 @@ class Hud:
         width = 240
         hp_ratio = max(0.0, player.hp / player.max_hp)
         exp_ratio = 0.0 if player.exp_to_next == 0 else player.exp / player.exp_to_next
+        mode_label = "\u95ef\u5173" if run_state.game_mode == "campaign" else "\u65e0\u9650"
+        pool_progress = sum(1 for level in run_state.stage_skill_levels.values() if level >= 3)
         skill_names = [
-            app.skill_defs[skill_id].name if skill_id in app.skill_defs else skill_id
+            f"{app.skill_defs[skill_id].name} Lv.{player.skill_levels.get(skill_id, 0)}"
             for skill_id in run_state.selected_skills
+            if skill_id in app.skill_defs
         ]
-        skill_label = "\u3001".join(skill_names) if skill_names else "\u65e0"
+        skill_label = "\u3001".join(skill_names[:3]) if skill_names else "\u672a\u89e3\u9501"
 
         font = app.resources.get_font(18)
         small_font = app.resources.get_font(16)
@@ -30,18 +33,18 @@ class Hud:
             True,
             (232, 236, 240),
         )
-        skill_text = small_font.render(
-            "\u7b26\u5370: " + skill_label,
+        stage_text = small_font.render(
+            f"{mode_label}  \u7b2c {run_state.stage_index} \u5173  "
+            f"\u672c\u5173\u6ee1\u7ea7 {pool_progress}/5",
             True,
             (205, 214, 225),
         )
-        enemy_text = small_font.render(
-            f"\u654c\u4eba {run_state.active_entities['enemies']}  "
-            f"\u98de\u7b26 {run_state.active_entities['projectiles']}",
+        skill_text = small_font.render(
+            "\u5f53\u524d\u6280\u80fd: " + skill_label,
             True,
             (185, 197, 209),
         )
 
         surface.blit(stats_text, (18, 62))
-        surface.blit(skill_text, (18, 88))
-        surface.blit(enemy_text, (18, 110))
+        surface.blit(stage_text, (18, 88))
+        surface.blit(skill_text, (18, 110))

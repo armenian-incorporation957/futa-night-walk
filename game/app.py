@@ -7,6 +7,7 @@ from game.content.skills_loader import load_skills
 from game.content.waves_loader import load_waves
 from game.core.config import GameConfig
 from game.core.input import InputState
+from game.core.leaderboard import LeaderboardStore
 from game.core.pygame_support import require_pygame
 from game.core.resources import ResourceCache
 from game.scenes.game_over_scene import GameOverScene
@@ -25,6 +26,7 @@ class GameApp:
         self.resources = ResourceCache()
         self.input_state = InputState()
         self.running = True
+        self.leaderboard = LeaderboardStore(self.config.save_dir)
 
         pygame.display.set_caption(self.config.title)
 

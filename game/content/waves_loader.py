@@ -6,7 +6,7 @@ from pathlib import Path
 from game.models.definitions import WaveDef
 
 
-REQUIRED_KEYS = {"time", "enemy_id", "count", "interval"}
+REQUIRED_KEYS = {"stage", "time", "enemy_id", "count", "interval"}
 
 
 def load_waves(path: str | Path) -> list[WaveDef]:
@@ -20,14 +20,16 @@ def load_waves(path: str | Path) -> list[WaveDef]:
             missing = sorted(REQUIRED_KEYS - set(raw))
             raise ValueError(f"Wave definition missing keys: {missing}")
 
+        stage = int(raw["stage"])
         time = float(raw["time"])
         count = int(raw["count"])
         interval = float(raw["interval"])
-        if time < 0 or count <= 0 or interval < 0:
+        if stage <= 0 or time < 0 or count <= 0 or interval < 0:
             raise ValueError("Wave definition has invalid numeric values")
 
         waves.append(
             WaveDef(
+                stage=stage,
                 time=time,
                 enemy_id=str(raw["enemy_id"]),
                 count=count,

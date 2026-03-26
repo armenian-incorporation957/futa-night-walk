@@ -38,7 +38,7 @@ class SystemTests(unittest.TestCase):
 
     def test_spawn_system_respects_wave_schedule(self) -> None:
         spawn_system = SpawnSystem(
-            [WaveDef(time=1.0, enemy_id="paper_spirit", count=3, interval=0.5)],
+            [WaveDef(stage=1, time=1.0, enemy_id="paper_spirit", count=3, interval=0.5)],
             rng=random.Random(1),
         )
 
@@ -53,7 +53,7 @@ class SystemTests(unittest.TestCase):
 
     def test_spawn_system_continues_after_scripted_waves(self) -> None:
         spawn_system = SpawnSystem(
-            [WaveDef(time=0.5, enemy_id="paper_spirit", count=1, interval=0.0)],
+            [WaveDef(stage=1, time=0.5, enemy_id="paper_spirit", count=1, interval=0.0)],
             rng=random.Random(2),
         )
 
@@ -62,13 +62,26 @@ class SystemTests(unittest.TestCase):
 
         self.assertGreaterEqual(len(endless), 1)
 
-    def test_spawn_system_respects_soft_cap_in_endless_mode(self) -> None:
+    def test_spawn_system_respects_soft_cap_in_director_mode(self) -> None:
         spawn_system = SpawnSystem([], rng=random.Random(3))
+        spawn_system.configure_stage(stage_pattern=4, difficulty_multiplier=1.0)
         spawn_system.set_active_enemy_count(999)
 
         endless = spawn_system.update(12.0, self.enemy_defs, (0, 0, 100, 100))
 
         self.assertEqual(len(endless), 0)
+
+    def test_spawn_system_scales_enemy_stats_in_later_cycles(self) -> None:
+        spawn_system = SpawnSystem([], rng=random.Random(4))
+        spawn_system.configure_stage(stage_pattern=3, difficulty_multiplier=1.12)
+        spawn_system.set_active_enemy_count(0)
+
+        spawned = spawn_system.update(10.0, self.enemy_defs, (0, 0, 100, 100))
+
+        self.assertTrue(spawned)
+        enemy = spawned[0]
+        self.assertGreaterEqual(enemy.max_hp, self.enemy_defs[enemy.definition.id].hp)
+        self.assertGreaterEqual(enemy.contact_damage, self.enemy_defs[enemy.definition.id].contact_damage)
 
     def test_fire_talisman_applies_burn(self) -> None:
         player = Player(50, 50, PlayerStats())
@@ -117,10 +130,11 @@ class SystemTests(unittest.TestCase):
     def test_ward_shard_spawns_orbit_projectiles(self) -> None:
         player = Player(0, 0, PlayerStats())
         player.owned_skills.append("ward_shard")
+        player.skill_levels["ward_shard"] = 1
         player.skill_timers["ward_shard"] = 0.0
         combat = CombatSystem()
 
-        spawned = combat.spawn_player_projectiles(player, [], self.skill_defs, [])
+        spawned = combat.spawn_player_projectiles(player, [], {"ward_shard": self.skill_defs["ward_shard"]}, [])
 
         self.assertEqual(len(spawned), self.skill_defs["ward_shard"].orbit_count)
         self.assertTrue(all(projectile.skill.behavior_type == "orbit_guard" for projectile in spawned))
@@ -141,17 +155,61 @@ class SystemTests(unittest.TestCase):
         self.assertGreater(gained_exp, 0)
         self.assertFalse(pickup.is_alive())
 
-    def test_progression_choices_are_unique_and_valid(self) -> None:
-        player = Player(0, 0, PlayerStats())
-        progression = ProgressionSystem(self.skill_defs, rng=random.Random(2))
-        progression.apply_upgrade(player, "fire_talisman")
+    def test_progression_cycle_pools_cover_all_twenty_skills_without_duplicates(self) -> None:
+        progression = ProgressionSystem(self.skill_defs, rng=random.Random(5))
 
-        choices = progression.build_upgrade_choices(player, count=3)
+        pools = progression.build_cycle_stage_pools(1)
+        flattened = [skill_id for pool in pools for skill_id in pool]
+
+        self.assertEqual(len(pools), 4)
+        self.assertEqual(len(flattened), 20)
+        self.assertEqual(len(set(flattened)), 20)
+        self.assertTrue(all(len(pool) == 5 for pool in pools))
+
+    def test_progression_choices_only_offer_unmaxed_stage_skills(self) -> None:
+        progression = ProgressionSystem(self.skill_defs, rng=random.Random(6))
+        stage_skill_pool = progression.get_stage_skill_pool(1)
+        stage_skill_levels = {skill_id: 0 for skill_id in stage_skill_pool}
+        stage_skill_levels[stage_skill_pool[0]] = 3
+
+        choices = progression.build_upgrade_choices(stage_skill_pool, stage_skill_levels, count=3)
 
         self.assertEqual(len(choices), len(set(choices)))
-        for choice in choices:
-            self.assertIn(choice, self.skill_defs)
-            self.assertNotIn(choice, ["fire_talisman"])
+        self.assertNotIn(stage_skill_pool[0], choices)
+        self.assertTrue(all(choice in stage_skill_pool for choice in choices))
+
+    def test_apply_upgrade_unlocks_skill_and_caps_at_three(self) -> None:
+        player = Player(0, 0, PlayerStats())
+        progression = ProgressionSystem(self.skill_defs)
+        stage_skill_levels = {"fire_talisman": 0}
+
+        first_level = progression.apply_upgrade(player, "fire_talisman", stage_skill_levels)
+        second_level = progression.apply_upgrade(player, "fire_talisman", stage_skill_levels)
+        third_level = progression.apply_upgrade(player, "fire_talisman", stage_skill_levels)
+
+        self.assertEqual((first_level, second_level, third_level), (1, 2, 3))
+        self.assertIn("fire_talisman", player.owned_skills)
+        self.assertEqual(player.skill_levels["fire_talisman"], 3)
+        with self.assertRaises(ValueError):
+            progression.apply_upgrade(player, "fire_talisman", stage_skill_levels)
+
+    def test_effective_skill_defs_apply_level_scaling(self) -> None:
+        progression = ProgressionSystem(self.skill_defs)
+
+        effective = progression.effective_skill_defs({"fire_talisman": 3})
+
+        self.assertEqual(effective["fire_talisman"].damage, 14)
+        self.assertEqual(effective["fire_talisman"].cooldown, 0.34)
+        self.assertEqual(effective["fire_talisman"].burn_duration, 2.4)
+
+    def test_all_stage_skills_maxed_requires_every_skill_at_three(self) -> None:
+        progression = ProgressionSystem(self.skill_defs)
+        pool = progression.get_stage_skill_pool(1)
+        levels = {skill_id: 3 for skill_id in pool}
+
+        self.assertTrue(progression.all_stage_skills_maxed(pool, levels))
+        levels[pool[0]] = 2
+        self.assertFalse(progression.all_stage_skills_maxed(pool, levels))
 
     def test_player_levels_after_collecting_enough_exp(self) -> None:
         player = Player(0, 0, PlayerStats())

@@ -16,3 +16,5 @@ build/
 tmp*/
 tests/_scratch/*
 !tests/_scratch/.gitkeep
+save_data/*.json
+!save_data/.gitkeep
