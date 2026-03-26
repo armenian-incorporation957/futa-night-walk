@@ -29,6 +29,8 @@ class ContentLoaderTests(unittest.TestCase):
         self.assertIn("paper_spirit", enemies)
         self.assertIn("fire_talisman", skills)
         self.assertGreaterEqual(len(waves), 3)
+        self.assertEqual(enemies["paper_spirit"].name, "\u7eb8\u7075")
+        self.assertEqual(skills["fire_talisman"].name, "\u706b\u7b26")
 
     def test_enemy_loader_rejects_duplicates(self) -> None:
         payload = [
@@ -56,7 +58,7 @@ class ContentLoaderTests(unittest.TestCase):
             load_enemies(path)
 
     def test_skill_loader_rejects_missing_fields(self) -> None:
-        payload = [{"id": "bad", "name": "缺字段"}]
+        payload = [{"id": "bad", "name": "missing"}]
         path = self._write_payload("skills.json", payload)
         with self.assertRaises(ValueError):
             load_skills(path)

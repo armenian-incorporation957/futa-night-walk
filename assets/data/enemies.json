@@ -1,7 +1,7 @@
 [
   {
     "id": "paper_spirit",
-    "name": "纸灵",
+    "name": "\u7eb8\u7075",
     "hp": 12,
     "speed": 92,
     "contact_damage": 8,
@@ -11,7 +11,7 @@
   },
   {
     "id": "lantern_wisp",
-    "name": "灯妖",
+    "name": "\u706f\u5996",
     "hp": 18,
     "speed": 74,
     "contact_damage": 12,
@@ -21,7 +21,7 @@
   },
   {
     "id": "mist_fox",
-    "name": "雾狐",
+    "name": "\u96fe\u72d0",
     "hp": 24,
     "speed": 108,
     "contact_damage": 10,

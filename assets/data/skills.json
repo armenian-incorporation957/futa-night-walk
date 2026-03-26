@@ -1,7 +1,7 @@
 [
   {
     "id": "fire_talisman",
-    "name": "火符",
+    "name": "\u706b\u7b26",
     "cooldown": 0.45,
     "damage": 10,
     "projectile_speed": 360,
@@ -9,7 +9,7 @@
   },
   {
     "id": "thunder_mark",
-    "name": "雷印",
+    "name": "\u96f7\u5370",
     "cooldown": 0.9,
     "damage": 24,
     "projectile_speed": 440,
@@ -17,7 +17,7 @@
   },
   {
     "id": "frost_sand",
-    "name": "冰砂",
+    "name": "\u51b0\u7802",
     "cooldown": 1.1,
     "damage": 9,
     "projectile_speed": 300,
@@ -27,7 +27,7 @@
   },
   {
     "id": "spirit_orb",
-    "name": "灵珠",
+    "name": "\u7075\u73e0",
     "cooldown": 0.75,
     "damage": 14,
     "projectile_speed": 280,
@@ -35,7 +35,7 @@
   },
   {
     "id": "ward_shard",
-    "name": "护身咒",
+    "name": "\u62a4\u8eab\u5492",
     "cooldown": 1.4,
     "damage": 18,
     "projectile_speed": 250,

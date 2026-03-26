@@ -9,6 +9,11 @@ class Hud:
         width = 240
         hp_ratio = max(0.0, player.hp / player.max_hp)
         exp_ratio = 0.0 if player.exp_to_next == 0 else player.exp / player.exp_to_next
+        skill_names = [
+            app.skill_defs[skill_id].name if skill_id in app.skill_defs else skill_id
+            for skill_id in run_state.selected_skills
+        ]
+        skill_label = "\u3001".join(skill_names) if skill_names else "\u65e0"
 
         font = app.resources.get_font(18)
         small_font = app.resources.get_font(16)
@@ -19,17 +24,20 @@ class Hud:
         pygame.draw.rect(surface, (94, 196, 165), (18, 42, int(width * exp_ratio), 12))
 
         stats_text = font.render(
-            f"HP {int(player.hp)}/{int(player.max_hp)}  Lv.{player.level}  Time {int(run_state.current_time)}",
+            f"\u751f\u547d {int(player.hp)}/{int(player.max_hp)}  "
+            f"\u7b49\u7ea7 {player.level}  "
+            f"\u65f6\u95f4 {int(run_state.current_time)}\u79d2",
             True,
             (232, 236, 240),
         )
         skill_text = small_font.render(
-            "符印: " + ", ".join(run_state.selected_skills),
+            "\u7b26\u5370: " + skill_label,
             True,
             (205, 214, 225),
         )
         enemy_text = small_font.render(
-            f"敌人 {run_state.active_entities['enemies']}  投射物 {run_state.active_entities['projectiles']}",
+            f"\u654c\u4eba {run_state.active_entities['enemies']}  "
+            f"\u98de\u7b26 {run_state.active_entities['projectiles']}",
             True,
             (185, 197, 209),
         )

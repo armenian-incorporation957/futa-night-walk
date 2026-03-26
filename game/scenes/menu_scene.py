@@ -23,8 +23,12 @@ class MenuScene(BaseScene):
         title_font = resources.get_font(46)
         body_font = resources.get_font(24)
 
-        title = title_font.render("符塔夜行", True, (239, 226, 185))
-        prompt = body_font.render("按 Enter 开始，WASD 移动，数字键选择符印", True, (210, 220, 232))
+        title = title_font.render("\u7b26\u5854\u591c\u884c", True, (239, 226, 185))
+        prompt = body_font.render(
+            "\u6309 Enter \u5f00\u59cb\uff0cWASD \u79fb\u52a8\uff0c\u6570\u5b57\u952e\u9009\u62e9\u7b26\u5370",
+            True,
+            (210, 220, 232),
+        )
 
         surface.blit(title, title.get_rect(center=(config.width // 2, config.height // 2 - 40)))
         surface.blit(prompt, prompt.get_rect(center=(config.width // 2, config.height // 2 + 16)))

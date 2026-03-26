@@ -27,9 +27,17 @@ class GameOverScene(BaseScene):
         title_font = resources.get_font(42)
         body_font = resources.get_font(24)
 
-        title = title_font.render("符塔折戟", True, (255, 190, 190))
-        score_text = body_font.render(f"坚持时间: {self.score} 秒", True, (235, 220, 220))
-        prompt = body_font.render("回车重开，Esc 返回菜单", True, (215, 205, 205))
+        title = title_font.render("\u7b26\u5854\u6298\u621f", True, (255, 190, 190))
+        score_text = body_font.render(
+            f"\u575a\u6301\u65f6\u95f4: {self.score} \u79d2",
+            True,
+            (235, 220, 220),
+        )
+        prompt = body_font.render(
+            "\u56de\u8f66\u91cd\u5f00\uff0cEsc \u8fd4\u56de\u83dc\u5355",
+            True,
+            (215, 205, 205),
+        )
 
         surface.blit(title, title.get_rect(center=(config.width // 2, config.height // 2 - 50)))
         surface.blit(score_text, score_text.get_rect(center=(config.width // 2, config.height // 2 + 4)))

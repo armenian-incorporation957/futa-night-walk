@@ -18,9 +18,10 @@ class UpgradePanel:
         pygame.draw.rect(surface, (28, 34, 44), panel_rect)
         pygame.draw.rect(surface, (110, 140, 180), panel_rect, 2)
 
-        title = font.render("选择新的符印", True, (242, 231, 194))
+        title = font.render("\u9009\u62e9\u65b0\u7684\u7b26\u5370", True, (242, 231, 194))
         surface.blit(title, title.get_rect(center=(config.width // 2, config.height // 2 - 80)))
 
         for index, skill_id in enumerate(choices):
-            line = small_font.render(f"{index + 1}. {skill_id}", True, (225, 233, 240))
+            skill_name = app.skill_defs[skill_id].name if skill_id in app.skill_defs else skill_id
+            line = small_font.render(f"{index + 1}. {skill_name}", True, (225, 233, 240))
             surface.blit(line, (panel_rect.x + 40, panel_rect.y + 80 + index * 38))

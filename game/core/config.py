@@ -8,7 +8,7 @@ from pathlib import Path
 class GameConfig:
     width: int = 960
     height: int = 540
-    title: str = "符塔夜行"
+    title: str = "\u7b26\u5854\u591c\u884c"
     target_fps: int = 60
     background_color: tuple[int, int, int] = (14, 18, 24)
     grid_color: tuple[int, int, int] = (24, 30, 40)
