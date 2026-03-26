@@ -94,6 +94,7 @@ class RunScene(BaseScene):
         self.player.set_movement(self.app.input_state.move_x, self.app.input_state.move_y)
         self.player.update(dt, self._arena_bounds())
 
+        self.spawn_system.set_active_enemy_count(sum(1 for enemy in self.enemies if enemy.is_alive()))
         spawned = self.spawn_system.update(self.run_state.current_time, self.app.enemy_defs, self._arena_bounds())
         self.enemies.extend(spawned)
 
@@ -101,19 +102,29 @@ class RunScene(BaseScene):
 
         new_projectiles = self.combat_system.spawn_player_projectiles(
             self.player,
+            self.projectiles,
             self.app.skill_defs,
             self.enemies,
         )
         self.projectiles.extend(new_projectiles)
-        self.combat_system.update_projectiles(self.projectiles, dt, self._arena_bounds())
-        gained_exp = self.combat_system.resolve(self.projectiles, self.enemies, self.pickups, self.player)
+        self.combat_system.update_projectiles(
+            self.projectiles,
+            dt,
+            self._arena_bounds(),
+            self.player,
+            self.enemies,
+        )
+        self.combat_system.resolve(self.projectiles, self.enemies, self.pickups, self.player)
+        self.combat_system.collect_enemy_drops(self.enemies, self.pickups)
+        gained_exp = self.combat_system.update_pickups(self.pickups, self.player, dt)
 
         leveled_up = self.progression_system.grant_exp(self.player, gained_exp)
         if leveled_up:
-            self.run_state.pending_upgrade_choices = self.progression_system.build_upgrade_choices(
+            choices = self.progression_system.build_upgrade_choices(
                 self.player,
                 count=3,
             )
+            self.run_state.pending_upgrade_choices = choices
 
         self.enemies = [enemy for enemy in self.enemies if enemy.is_alive()]
         self.projectiles = [projectile for projectile in self.projectiles if projectile.is_alive()]

@@ -26,6 +26,7 @@ class Player(Entity):
         self.exp_to_next = 20
         self.owned_skills: list[str] = []
         self.skill_timers: dict[str, float] = {}
+        self.hurt_cooldown = 0.0
 
     def set_movement(self, move_x: int, move_y: int) -> None:
         self.move_x = move_x
@@ -49,6 +50,7 @@ class Player(Entity):
 
         for skill_id in list(self.skill_timers):
             self.skill_timers[skill_id] = max(0.0, self.skill_timers[skill_id] - dt)
+        self.hurt_cooldown = max(0.0, self.hurt_cooldown - dt)
 
     def draw(self, surface) -> None:
         pygame = require_pygame()

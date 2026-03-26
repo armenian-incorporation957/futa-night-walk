@@ -2,25 +2,43 @@
   {
     "time": 0.5,
     "enemy_id": "paper_spirit",
-    "count": 4,
-    "interval": 1.0
+    "count": 5,
+    "interval": 0.9
   },
   {
-    "time": 6.0,
+    "time": 5.0,
     "enemy_id": "lantern_wisp",
     "count": 4,
-    "interval": 1.4
+    "interval": 1.2
   },
   {
-    "time": 12.0,
+    "time": 9.5,
+    "enemy_id": "paper_spirit",
+    "count": 6,
+    "interval": 0.55
+  },
+  {
+    "time": 14.0,
     "enemy_id": "mist_fox",
     "count": 3,
-    "interval": 2.0
+    "interval": 1.5
   },
   {
     "time": 18.0,
+    "enemy_id": "lantern_wisp",
+    "count": 5,
+    "interval": 0.9
+  },
+  {
+    "time": 23.0,
     "enemy_id": "paper_spirit",
-    "count": 6,
-    "interval": 0.6
+    "count": 8,
+    "interval": 0.45
+  },
+  {
+    "time": 27.0,
+    "enemy_id": "mist_fox",
+    "count": 4,
+    "interval": 1.1
   }
 ]

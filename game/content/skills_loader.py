@@ -9,6 +9,7 @@ from game.models.definitions import SkillDef
 REQUIRED_KEYS = {
     "id",
     "name",
+    "description",
     "cooldown",
     "damage",
     "projectile_speed",
@@ -34,20 +35,70 @@ def load_skills(path: str | Path) -> dict[str, SkillDef]:
         cooldown = float(raw["cooldown"])
         damage = int(raw["damage"])
         projectile_speed = float(raw["projectile_speed"])
+        duration = float(raw.get("duration", 1.6))
         shots = int(raw.get("shots", 1))
         spread_angle = float(raw.get("spread_angle", 18.0))
-        if cooldown <= 0 or damage <= 0 or projectile_speed <= 0 or shots <= 0:
+        burn_duration = float(raw.get("burn_duration", 0.0))
+        burn_damage = float(raw.get("burn_damage", 0.0))
+        slow_factor = float(raw.get("slow_factor", 1.0))
+        slow_duration = float(raw.get("slow_duration", 0.0))
+        chain_targets = int(raw.get("chain_targets", 0))
+        chain_range = float(raw.get("chain_range", 0.0))
+        chain_damage_ratio = float(raw.get("chain_damage_ratio", 0.0))
+        explosion_radius = float(raw.get("explosion_radius", 0.0))
+        explosion_damage_ratio = float(raw.get("explosion_damage_ratio", 0.0))
+        orbit_count = int(raw.get("orbit_count", 0))
+        orbit_radius = float(raw.get("orbit_radius", 0.0))
+        orbit_speed = float(raw.get("orbit_speed", 0.0))
+        homing_strength = float(raw.get("homing_strength", 0.0))
+        hit_stun = float(raw.get("hit_stun", 0.0))
+        if (
+            cooldown <= 0
+            or damage <= 0
+            or projectile_speed < 0
+            or duration <= 0
+            or shots <= 0
+            or burn_duration < 0
+            or burn_damage < 0
+            or slow_factor <= 0
+            or slow_duration < 0
+            or chain_targets < 0
+            or chain_range < 0
+            or chain_damage_ratio < 0
+            or explosion_radius < 0
+            or explosion_damage_ratio < 0
+            or orbit_count < 0
+            or orbit_radius < 0
+            or homing_strength < 0
+            or hit_stun < 0
+        ):
             raise ValueError(f"Skill '{skill_id}' has invalid numeric values")
 
         skills[skill_id] = SkillDef(
             id=skill_id,
             name=str(raw["name"]),
+            description=str(raw["description"]),
             cooldown=cooldown,
             damage=damage,
             projectile_speed=projectile_speed,
             behavior_type=str(raw["behavior_type"]),
+            duration=duration,
             shots=shots,
             spread_angle=spread_angle,
+            burn_duration=burn_duration,
+            burn_damage=burn_damage,
+            slow_factor=slow_factor,
+            slow_duration=slow_duration,
+            chain_targets=chain_targets,
+            chain_range=chain_range,
+            chain_damage_ratio=chain_damage_ratio,
+            explosion_radius=explosion_radius,
+            explosion_damage_ratio=explosion_damage_ratio,
+            orbit_count=orbit_count,
+            orbit_radius=orbit_radius,
+            orbit_speed=orbit_speed,
+            homing_strength=homing_strength,
+            hit_stun=hit_stun,
         )
 
     return skills

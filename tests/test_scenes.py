@@ -9,6 +9,7 @@ from game.content.skills_loader import load_skills
 from game.content.waves_loader import load_waves
 from game.core.config import GameConfig
 from game.core.input import InputState
+from game.core.pygame_support import require_pygame
 from game.scenes.game_over_scene import GameOverScene
 from game.scenes.menu_scene import MenuScene
 from game.scenes.run_scene import RunScene
@@ -30,14 +31,44 @@ class _DummyApp:
 class SceneTests(unittest.TestCase):
     def setUp(self) -> None:
         self.app = _DummyApp()
+        self.pygame = require_pygame()
+
+    def _click(self, scene: MenuScene, position: tuple[int, int]) -> None:
+        scene.handle_event(self.pygame.event.Event(self.pygame.MOUSEMOTION, {"pos": position}))
+        scene.handle_event(self.pygame.event.Event(self.pygame.MOUSEBUTTONDOWN, {"button": 1, "pos": position}))
+        scene.handle_event(self.pygame.event.Event(self.pygame.MOUSEBUTTONUP, {"button": 1, "pos": position}))
 
     def test_run_scene_imports_pygame_helper(self) -> None:
         self.assertTrue(callable(run_scene_module.require_pygame))
 
-    def test_menu_scene_requests_run(self) -> None:
+    def test_menu_scene_click_start_requests_run(self) -> None:
         scene = MenuScene(self.app)
-        scene.start_run()
+        rect = scene._button_rect(-10)
+        self._click(scene, rect.center)
         self.assertEqual(scene.next_scene_name, "run")
+
+    def test_menu_scene_help_toggles_popup(self) -> None:
+        scene = MenuScene(self.app)
+        rect = scene._button_rect(70)
+
+        self._click(scene, rect.center)
+        self.assertTrue(scene.show_help)
+        self._click(scene, rect.center)
+        self.assertFalse(scene.show_help)
+
+    def test_menu_scene_enter_no_longer_starts_game(self) -> None:
+        scene = MenuScene(self.app)
+        event = self.pygame.event.Event(self.pygame.KEYDOWN, {"key": self.pygame.K_RETURN})
+
+        scene.handle_event(event)
+
+        self.assertIsNone(scene.next_scene_name)
+
+    def test_menu_scene_hover_state_updates_on_motion(self) -> None:
+        scene = MenuScene(self.app)
+        rect = scene._button_rect(70)
+        scene.handle_event(self.pygame.event.Event(self.pygame.MOUSEMOTION, {"pos": rect.center}))
+        self.assertEqual(scene.hovered_button, "help")
 
     def test_run_scene_requests_game_over_when_player_dies(self) -> None:
         scene = RunScene(self.app)

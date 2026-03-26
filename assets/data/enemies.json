@@ -2,9 +2,9 @@
   {
     "id": "paper_spirit",
     "name": "\u7eb8\u7075",
-    "hp": 12,
-    "speed": 92,
-    "contact_damage": 8,
+    "hp": 14,
+    "speed": 106,
+    "contact_damage": 10,
     "sprite_key": "paper_spirit",
     "ai_type": "chase",
     "exp_reward": 7
@@ -12,9 +12,9 @@
   {
     "id": "lantern_wisp",
     "name": "\u706f\u5996",
-    "hp": 18,
-    "speed": 74,
-    "contact_damage": 12,
+    "hp": 22,
+    "speed": 88,
+    "contact_damage": 14,
     "sprite_key": "lantern_wisp",
     "ai_type": "chase",
     "exp_reward": 10
@@ -22,11 +22,11 @@
   {
     "id": "mist_fox",
     "name": "\u96fe\u72d0",
-    "hp": 24,
-    "speed": 108,
-    "contact_damage": 10,
+    "hp": 28,
+    "speed": 124,
+    "contact_damage": 12,
     "sprite_key": "mist_fox",
     "ai_type": "orbit",
-    "exp_reward": 12
+    "exp_reward": 13
   }
 ]

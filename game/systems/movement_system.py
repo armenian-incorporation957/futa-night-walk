@@ -19,16 +19,20 @@ class MovementSystem:
             if not enemy.is_alive():
                 continue
 
+            enemy.update_status(dt)
+            if not enemy.is_alive():
+                continue
+
             dx = player.x - enemy.x
             dy = player.y - enemy.y
             length = math.hypot(dx, dy) or 1.0
 
             if enemy.ai_type == "orbit" and length < 120:
-                enemy.vx = -dy / length * enemy.speed
-                enemy.vy = dx / length * enemy.speed
+                enemy.vx = -dy / length * enemy.current_speed
+                enemy.vy = dx / length * enemy.current_speed
             else:
-                enemy.vx = dx / length * enemy.speed
-                enemy.vy = dy / length * enemy.speed
+                enemy.vx = dx / length * enemy.current_speed
+                enemy.vy = dy / length * enemy.current_speed
 
             enemy.update(dt)
             enemy.x = min(max(enemy.x, min_x + enemy.radius), max_x - enemy.radius)

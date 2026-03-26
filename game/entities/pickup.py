@@ -16,6 +16,8 @@ class Pickup(Entity):
             faction="pickup",
         )
         self.value = value
+        self.attracted = False
+        self.attract_speed = 0.0
 
     def draw(self, surface) -> None:
         pygame = require_pygame()

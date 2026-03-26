@@ -19,12 +19,28 @@ class EnemyDef:
 class SkillDef:
     id: str
     name: str
+    description: str
     cooldown: float
     damage: int
     projectile_speed: float
     behavior_type: str
+    duration: float = 1.6
     shots: int = 1
     spread_angle: float = 18.0
+    burn_duration: float = 0.0
+    burn_damage: float = 0.0
+    slow_factor: float = 1.0
+    slow_duration: float = 0.0
+    chain_targets: int = 0
+    chain_range: float = 0.0
+    chain_damage_ratio: float = 0.0
+    explosion_radius: float = 0.0
+    explosion_damage_ratio: float = 0.0
+    orbit_count: int = 0
+    orbit_radius: float = 0.0
+    orbit_speed: float = 0.0
+    homing_strength: float = 0.0
+    hit_stun: float = 0.0
 
 
 @dataclass(frozen=True)

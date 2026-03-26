@@ -2,45 +2,67 @@
   {
     "id": "fire_talisman",
     "name": "\u706b\u7b26",
-    "cooldown": 0.45,
-    "damage": 10,
-    "projectile_speed": 360,
-    "behavior_type": "bolt"
+    "description": "\u5feb\u901f\u5355\u4f53\u76f4\u7ebf\u5f39\uff0c\u9644\u5e26\u707c\u70e7",
+    "cooldown": 0.42,
+    "damage": 11,
+    "projectile_speed": 400,
+    "behavior_type": "burn_bolt",
+    "duration": 1.25,
+    "burn_duration": 1.8,
+    "burn_damage": 5.0
   },
   {
     "id": "thunder_mark",
     "name": "\u96f7\u5370",
-    "cooldown": 0.9,
+    "description": "\u9ad8\u4f24\u76f4\u51fb\uff0c\u547d\u4e2d\u540e\u94fe\u52301\u4e2a\u9644\u8fd1\u76ee\u6807",
+    "cooldown": 0.92,
     "damage": 24,
-    "projectile_speed": 440,
-    "behavior_type": "bolt"
+    "projectile_speed": 460,
+    "behavior_type": "chain_bolt",
+    "duration": 1.1,
+    "chain_targets": 1,
+    "chain_range": 135,
+    "chain_damage_ratio": 0.7,
+    "hit_stun": 0.15
   },
   {
     "id": "frost_sand",
     "name": "\u51b0\u7802",
-    "cooldown": 1.1,
+    "description": "\u6247\u5f62\u6563\u5c04\uff0c\u547d\u4e2d\u540e\u51cf\u901f",
+    "cooldown": 1.05,
     "damage": 9,
-    "projectile_speed": 300,
-    "behavior_type": "spread",
+    "projectile_speed": 320,
+    "behavior_type": "frost_spread",
+    "duration": 1.0,
     "shots": 3,
-    "spread_angle": 16
+    "spread_angle": 18,
+    "slow_factor": 0.52,
+    "slow_duration": 1.7
   },
   {
     "id": "spirit_orb",
     "name": "\u7075\u73e0",
-    "cooldown": 0.75,
-    "damage": 14,
-    "projectile_speed": 280,
-    "behavior_type": "bolt"
+    "description": "\u7f13\u901f\u8ffd\u8e2a\u5f39\uff0c\u547d\u4e2d\u540e\u5c0f\u8303\u56f4\u7206\u88c2",
+    "cooldown": 0.86,
+    "damage": 15,
+    "projectile_speed": 250,
+    "behavior_type": "homing_blast",
+    "duration": 2.2,
+    "explosion_radius": 56,
+    "explosion_damage_ratio": 0.65,
+    "homing_strength": 260
   },
   {
     "id": "ward_shard",
     "name": "\u62a4\u8eab\u5492",
-    "cooldown": 1.4,
-    "damage": 18,
-    "projectile_speed": 250,
-    "behavior_type": "spread",
-    "shots": 2,
-    "spread_angle": 28
+    "description": "\u73af\u7ed5\u81ea\u8eab\u65cb\u8f6c\u7684\u62a4\u7b26\uff0c\u62b5\u5fa1\u8fd1\u8eab\u654c\u4eba",
+    "cooldown": 2.8,
+    "damage": 12,
+    "projectile_speed": 0,
+    "behavior_type": "orbit_guard",
+    "duration": 5.0,
+    "orbit_count": 2,
+    "orbit_radius": 46,
+    "orbit_speed": 4.4
   }
 ]
