@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from game.core.pygame_support import require_pygame
-from game.ui.skill_views import build_upgrade_delta_view
+from game.ui.skill_views import build_skill_icon_surface, build_upgrade_delta_view
 
 
 class UpgradePanel:
@@ -44,7 +44,7 @@ class UpgradePanel:
             surface.blit(badge, badge.get_rect(center=badge_rect.center))
 
             icon_rect = pygame.Rect(rect.centerx - 24, rect.y + 14, 48, 48)
-            self._draw_icon(surface, app, detail.icon_path, icon_rect)
+            self._draw_icon(surface, app, skill, icon_rect)
 
             name_text = name_font.render(
                 f"{detail.name}  Lv.{detail.from_level} -> Lv.{detail.to_level}",
@@ -94,19 +94,12 @@ class UpgradePanel:
         bottom_row = [pygame.Rect(start_bottom + index * (width + gap), 256, width, height) for index in range(2)]
         return top_row + bottom_row
 
-    def _draw_icon(self, surface, app, icon_path, rect) -> None:
+    def _draw_icon(self, surface, app, skill, rect) -> None:
         pygame = require_pygame()
         pygame.draw.rect(surface, (43, 55, 72), rect, border_radius=12)
         pygame.draw.rect(surface, (103, 128, 168), rect, 2, border_radius=12)
-        image = app.resources.get_image(icon_path) if icon_path else None
-        if image is not None:
-            scaled = pygame.transform.smoothscale(image, (rect.width - 8, rect.height - 8))
-            surface.blit(scaled, scaled.get_rect(center=rect.center))
-            return
-
-        placeholder_font = app.resources.get_font(14)
-        text = placeholder_font.render("\u56fe\u6807", True, (216, 227, 240))
-        surface.blit(text, text.get_rect(center=rect.center))
+        icon = build_skill_icon_surface(skill, rect.width - 8, app.resources)
+        surface.blit(icon, icon.get_rect(center=rect.center))
 
     def _wrap_text(self, text: str, font, max_width: int) -> list[str]:
         wrapped: list[str] = []

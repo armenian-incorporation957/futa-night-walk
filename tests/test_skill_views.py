@@ -3,9 +3,16 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
+from game.core.pygame_support import require_pygame
+from game.core.resources import ResourceCache
 from game.content.skills_loader import load_skills
 from game.ui.hud import Hud
-from game.ui.skill_views import build_skill_detail_view, build_upgrade_delta_view
+from game.ui.skill_views import (
+    build_skill_detail_layout,
+    build_skill_detail_view,
+    build_skill_icon_surface,
+    build_upgrade_delta_view,
+)
 
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "assets" / "data"
@@ -13,7 +20,9 @@ DATA_DIR = Path(__file__).resolve().parents[1] / "assets" / "data"
 
 class SkillViewTests(unittest.TestCase):
     def setUp(self) -> None:
+        require_pygame().init()
         self.skill_defs = load_skills(DATA_DIR / "skills.json")
+        self.resources = ResourceCache()
 
     def test_skill_detail_view_contains_three_level_snapshots(self) -> None:
         detail = build_skill_detail_view(self.skill_defs["fire_talisman"])
@@ -59,3 +68,15 @@ class SkillViewTests(unittest.TestCase):
 
         self.assertEqual(len(entries), 5)
         self.assertEqual(entries[-1].name, self.skill_defs["ward_shard"].name)
+
+    def test_skill_detail_layout_builds_scrollable_content_height(self) -> None:
+        layout = build_skill_detail_layout(self.skill_defs["thunder_mark"], width=440, resources=self.resources)
+
+        self.assertGreaterEqual(layout.content_height, 220)
+        self.assertTrue(layout.level_sections)
+
+    def test_skill_icon_surface_is_generated_without_png(self) -> None:
+        icon = build_skill_icon_surface(self.skill_defs["spirit_orb"], size=32, resources=self.resources)
+
+        self.assertEqual(icon.get_width(), 32)
+        self.assertEqual(icon.get_height(), 32)

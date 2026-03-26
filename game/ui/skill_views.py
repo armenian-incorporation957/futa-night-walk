@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, replace
 from pathlib import Path
 
+from game.core.pygame_support import require_pygame
 from game.models.definitions import SkillDef
 
 
@@ -13,6 +15,29 @@ GROUP_LABELS = {
     "defense": "\u9632\u5fa1\u53ec\u5524",
 }
 
+SKILL_COLORS = {
+    "fire_talisman": (255, 135, 92),
+    "thunder_mark": (255, 240, 135),
+    "piercing_spike": (222, 232, 255),
+    "armor_breaker": (255, 188, 137),
+    "soul_arrow": (172, 204, 255),
+    "frost_sand": (133, 209, 255),
+    "frost_ring": (164, 232, 255),
+    "lag_seal": (113, 190, 255),
+    "poison_mist": (146, 225, 129),
+    "binding_hex": (154, 189, 255),
+    "spirit_orb": (198, 157, 255),
+    "blast_pill": (255, 147, 119),
+    "shock_ring": (255, 226, 112),
+    "starfall": (255, 214, 158),
+    "echo_mark": (186, 167, 255),
+    "ward_shard": (156, 245, 214),
+    "shadow_twin": (168, 193, 255),
+    "healing_mark": (148, 241, 186),
+    "soul_lantern": (128, 232, 214),
+    "soul_banner": (214, 156, 255),
+}
+
 
 @dataclass(frozen=True)
 class SkillDetailView:
@@ -21,6 +46,17 @@ class SkillDetailView:
     summary_line: str
     mechanic_lines: list[str]
     level_lines: dict[int, list[str]]
+    icon_path: Path | None
+
+
+@dataclass(frozen=True)
+class SkillDetailLayout:
+    name: str
+    group_label: str
+    summary_lines: list[str]
+    mechanic_lines: list[str]
+    level_sections: list[tuple[int, list[str]]]
+    content_height: int
     icon_path: Path | None
 
 
@@ -65,6 +101,35 @@ def build_skill_detail_view(skill_def: SkillDef) -> SkillDetailView:
     )
 
 
+def build_skill_detail_layout(skill_def: SkillDef, width: int, resources) -> SkillDetailLayout:
+    detail = build_skill_detail_view(skill_def)
+    body_font = resources.get_font(16)
+    small_font = resources.get_font(15)
+    summary_lines = _wrap_text(detail.summary_line, body_font, width - 126)
+    mechanic_lines: list[str] = []
+    for line in detail.mechanic_lines:
+        mechanic_lines.extend(_wrap_text("\u2022 " + line, small_font, width - 44))
+
+    level_sections: list[tuple[int, list[str]]] = []
+    for level in (1, 2, 3):
+        summary = "\u3001".join(detail.level_lines[level])
+        level_sections.append((level, _wrap_text(summary, small_font, width - 58)))
+
+    content_height = 116 + len(summary_lines[:2]) * 18 + len(mechanic_lines) * 20
+    for _, lines in level_sections:
+        content_height += 24 + len(lines) * 18 + 6
+
+    return SkillDetailLayout(
+        name=detail.name,
+        group_label=detail.group_label,
+        summary_lines=summary_lines[:2],
+        mechanic_lines=mechanic_lines,
+        level_sections=level_sections,
+        content_height=max(content_height, 220),
+        icon_path=detail.icon_path,
+    )
+
+
 def build_upgrade_delta_view(skill_def: SkillDef, current_level: int) -> UpgradeDeltaView:
     snapshots = build_skill_level_snapshots(skill_def)
     from_level = max(0, min(3, current_level))
@@ -101,6 +166,103 @@ def build_hud_skill_views(
             )
         )
     return views
+
+
+def build_skill_icon_surface(skill_def: SkillDef, size: int, resources):
+    pygame = require_pygame()
+    if size <= 0:
+        raise ValueError("Icon size must be positive")
+
+    icon_path = _icon_path(skill_def.id)
+    if icon_path is not None:
+        image = resources.get_image(icon_path)
+        if image is not None:
+            return pygame.transform.smoothscale(image, (size, size))
+
+    surface = pygame.Surface((size, size), pygame.SRCALPHA)
+    center = size / 2
+    radius = max(6, size // 4)
+    color = SKILL_COLORS.get(skill_def.id, (220, 228, 240))
+    outer = tuple(min(255, channel + 35) for channel in color)
+    inner = tuple(max(0, int(channel * 0.72)) for channel in color)
+
+    pygame.draw.circle(surface, (*outer, 28), (int(center), int(center)), int(size * 0.42))
+
+    if skill_def.behavior_type == "chain_bolt":
+        pygame.draw.circle(surface, color, (int(center), int(center)), radius)
+        points = [
+            (center - size * 0.08, center - size * 0.24),
+            (center + size * 0.04, center - size * 0.08),
+            (center - size * 0.01, center - size * 0.02),
+            (center + size * 0.11, center + size * 0.17),
+            (center + size * 0.01, center + size * 0.08),
+        ]
+        pygame.draw.lines(surface, (255, 247, 170), False, points, max(2, size // 12))
+    elif skill_def.behavior_type == "frost_spread":
+        pygame.draw.circle(surface, color, (int(center), int(center)), radius)
+        for angle in (0, math.pi / 3, 2 * math.pi / 3):
+            dx = math.cos(angle) * size * 0.2
+            dy = math.sin(angle) * size * 0.2
+            pygame.draw.line(
+                surface,
+                (233, 250, 255),
+                (center - dx, center - dy),
+                (center + dx, center + dy),
+                max(2, size // 14),
+            )
+    elif skill_def.behavior_type == "orbit_guard":
+        for angle in (0, 2 * math.pi / 3, 4 * math.pi / 3):
+            px = center + math.cos(angle) * size * 0.18
+            py = center + math.sin(angle) * size * 0.18
+            pygame.draw.circle(surface, color, (int(px), int(py)), max(4, size // 10))
+        pygame.draw.circle(surface, (235, 245, 255), (int(center), int(center)), max(3, size // 12), 1)
+    elif skill_def.behavior_type == "healing_mark":
+        pygame.draw.circle(surface, color, (int(center), int(center)), radius + 2)
+        pygame.draw.line(
+            surface,
+            (241, 255, 244),
+            (center - size * 0.14, center),
+            (center + size * 0.14, center),
+            max(2, size // 10),
+        )
+        pygame.draw.line(
+            surface,
+            (241, 255, 244),
+            (center, center - size * 0.14),
+            (center, center + size * 0.14),
+            max(2, size // 10),
+        )
+    elif skill_def.behavior_type == "burn_bolt":
+        pygame.draw.circle(surface, color, (int(center - size * 0.04), int(center)), radius)
+        flame = [
+            (center + size * 0.04, center - size * 0.18),
+            (center + size * 0.21, center),
+            (center + size * 0.04, center + size * 0.18),
+        ]
+        pygame.draw.polygon(surface, (255, 219, 145), flame)
+    elif skill_def.behavior_type == "homing_blast":
+        pygame.draw.circle(surface, color, (int(center), int(center)), radius)
+        pygame.draw.circle(surface, (255, 255, 255), (int(center), int(center)), max(2, size // 12))
+        pygame.draw.arc(
+            surface,
+            (233, 238, 255),
+            pygame.Rect(size * 0.18, size * 0.18, size * 0.5, size * 0.5),
+            math.pi * 1.1,
+            math.pi * 1.9,
+            max(2, size // 16),
+        )
+    elif skill_def.behavior_type == "spread":
+        pygame.draw.circle(surface, inner, (int(center), int(center)), radius - 2)
+        for angle in (-0.6, 0.0, 0.6):
+            dx = math.cos(angle) * size * 0.2
+            dy = math.sin(angle) * size * 0.2
+            pygame.draw.circle(surface, color, (int(center + dx), int(center + dy)), max(4, size // 10))
+    else:
+        pygame.draw.circle(surface, color, (int(center), int(center)), radius)
+        pygame.draw.circle(surface, (244, 247, 252), (int(center), int(center)), max(2, size // 13), 1)
+
+    pygame.draw.circle(surface, (255, 255, 255), (int(center), int(center)), radius, 1)
+    return surface
 
 
 def _icon_path(skill_id: str) -> Path | None:
@@ -157,10 +319,7 @@ def _delta_lines(previous: SkillDef, current: SkillDef) -> list[str]:
 
 
 def _stat_lines(skill: SkillDef) -> list[str]:
-    lines = [
-        f"{label}: {_format_value(label, value)}"
-        for label, value in _display_stats(skill)
-    ]
+    lines = [f"{label}: {_format_value(label, value)}" for label, value in _display_stats(skill)]
     return lines or ["\u63d0\u4f9b\u57fa\u7840\u6548\u679c"]
 
 
@@ -227,3 +386,18 @@ def _format_value(label: str, value: int | float) -> str:
     if isinstance(value, float):
         return f"{value:.1f}"
     return str(value)
+
+
+def _wrap_text(text: str, font, max_width: int) -> list[str]:
+    wrapped: list[str] = []
+    current = ""
+    for char in text:
+        candidate = current + char
+        if current and font.size(candidate)[0] > max_width:
+            wrapped.append(current)
+            current = char
+        else:
+            current = candidate
+    if current:
+        wrapped.append(current)
+    return wrapped

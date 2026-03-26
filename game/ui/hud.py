@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from game.core.pygame_support import require_pygame
-from game.ui.skill_views import build_hud_skill_views
+from game.ui.skill_views import build_hud_skill_views, build_skill_icon_surface
 
 
 class Hud:
@@ -61,22 +61,16 @@ class Hud:
         for index, entry in enumerate(entries[:5]):
             row_rect = pygame.Rect(panel_rect.x + 10, panel_rect.y + 34 + index * 48, panel_rect.width - 20, 40)
             pygame.draw.rect(surface, (32, 41, 54), row_rect, border_radius=12)
-            self._draw_icon(surface, app, entry.icon_path, pygame.Rect(row_rect.x + 6, row_rect.y + 4, 32, 32))
+            self._draw_icon(surface, app, entry.skill_id, pygame.Rect(row_rect.x + 6, row_rect.y + 4, 32, 32))
             name = text_font.render(entry.name, True, (229, 236, 244))
             level = text_font.render(f"Lv.{entry.level}", True, (167, 199, 229))
             surface.blit(name, (row_rect.x + 46, row_rect.y + 7))
             surface.blit(level, (row_rect.x + 46, row_rect.y + 21))
 
-    def _draw_icon(self, surface, app, icon_path, rect) -> None:
+    def _draw_icon(self, surface, app, skill_id: str, rect) -> None:
         pygame = require_pygame()
         pygame.draw.rect(surface, (43, 55, 72), rect, border_radius=10)
         pygame.draw.rect(surface, (103, 128, 168), rect, 2, border_radius=10)
-        image = app.resources.get_image(icon_path) if icon_path else None
-        if image is not None:
-            scaled = pygame.transform.smoothscale(image, (rect.width - 6, rect.height - 6))
-            surface.blit(scaled, scaled.get_rect(center=rect.center))
-            return
-
-        placeholder_font = app.resources.get_font(12)
-        text = placeholder_font.render("\u56fe", True, (216, 227, 240))
-        surface.blit(text, text.get_rect(center=rect.center))
+        if skill_id in app.skill_defs:
+            icon = build_skill_icon_surface(app.skill_defs[skill_id], rect.width - 6, app.resources)
+            surface.blit(icon, icon.get_rect(center=rect.center))

@@ -4,14 +4,15 @@ import math
 
 from game.core.pygame_support import require_pygame
 from game.scenes.base_scene import BaseScene
-from game.ui.skill_views import GROUP_LABELS, build_skill_detail_view
+from game.ui.skill_views import GROUP_LABELS, build_skill_detail_layout, build_skill_icon_surface
 
 
 class MenuScene(BaseScene):
-    BUTTON_LAYOUT = {
-        "campaign": ("\u95ef\u5173\u6a21\u5f0f", -50),
-        "endless": ("\u65e0\u9650\u6a21\u5f0f", 20),
-        "help": ("\u8bf4\u660e", 90),
+    BUTTON_OFFSETS = {
+        "campaign": -50,
+        "endless": 20,
+        "help": 90,
+        "display": 160,
     }
 
     HELP_TABS = {
@@ -29,6 +30,9 @@ class MenuScene(BaseScene):
         self.help_tab = "controls"
         self.selected_help_group = self.SKILL_GROUPS[0]
         self.selected_help_skill_id: str | None = None
+        self.skill_detail_scroll = 0
+        self.skill_detail_content_height = 0
+        self.last_mouse_pos = (0, 0)
         self.animation_time = 0.0
         self._ensure_help_selection()
 
@@ -47,17 +51,26 @@ class MenuScene(BaseScene):
 
         if self.show_help:
             if event.type == pygame.MOUSEMOTION:
+                self.last_mouse_pos = event.pos
                 self.hovered_button = None
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                self.last_mouse_pos = event.pos
             elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                self.last_mouse_pos = event.pos
                 self._handle_help_click(event.pos)
+            elif event.type == pygame.MOUSEWHEEL:
+                self._handle_help_scroll(event.y)
             return
 
         if event.type == pygame.MOUSEMOTION:
+            self.last_mouse_pos = event.pos
             self._update_hovered(event.pos)
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            self.last_mouse_pos = event.pos
             self._update_hovered(event.pos)
             self.pressed_button = self.hovered_button
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            self.last_mouse_pos = event.pos
             self._update_hovered(event.pos)
             if self.pressed_button and self.pressed_button == self.hovered_button:
                 self._activate_button(self.pressed_button)
@@ -81,12 +94,12 @@ class MenuScene(BaseScene):
         surface.blit(title, title.get_rect(center=(config.width // 2 - 140, 112)))
         surface.blit(subtitle, subtitle.get_rect(center=(config.width // 2 - 140, 164)))
 
-        for button_id, (label, offset_y) in self.BUTTON_LAYOUT.items():
+        for button_id, offset_y in self.BUTTON_OFFSETS.items():
             hovered = self.hovered_button == button_id
             pressed = self.pressed_button == button_id
             self._draw_button(
                 surface,
-                label,
+                self._button_label(button_id),
                 self._button_rect(offset_y, hovered, pressed),
                 hovered=hovered,
                 pressed=pressed,
@@ -96,7 +109,7 @@ class MenuScene(BaseScene):
 
         footer_font = resources.get_font(18)
         footer = footer_font.render(
-            "\u9f20\u6807\u70b9\u51fb\u6309\u94ae\u5f00\u59cb\uff0c\u6392\u884c\u699c\u4ec5\u7edf\u8ba1\u65e0\u9650\u6a21\u5f0f",
+            "\u9f20\u6807\u70b9\u51fb\u6309\u94ae\u5f00\u59cb\uff0c\u8bf4\u660e\u9875\u53ef\u7528\u6eda\u8f6e\u67e5\u770b\u6280\u80fd\u8be6\u60c5",
             True,
             (170, 184, 201),
         )
@@ -104,6 +117,15 @@ class MenuScene(BaseScene):
 
         if self.show_help:
             self._draw_help_popup(surface)
+
+    def _button_label(self, button_id: str) -> str:
+        if button_id == "campaign":
+            return "\u95ef\u5173\u6a21\u5f0f"
+        if button_id == "endless":
+            return "\u65e0\u9650\u6a21\u5f0f"
+        if button_id == "help":
+            return "\u8bf4\u660e"
+        return "\u5168\u5c4f\u6a21\u5f0f" if not self.app.is_fullscreen else "\u7a97\u53e3\u6a21\u5f0f"
 
     def _activate_button(self, button_id: str) -> None:
         if button_id == "campaign":
@@ -114,6 +136,8 @@ class MenuScene(BaseScene):
             self.show_help = not self.show_help
             if self.show_help:
                 self._ensure_help_selection()
+        elif button_id == "display":
+            self.app.toggle_fullscreen()
 
     def _handle_help_click(self, pos: tuple[int, int]) -> None:
         if self._help_close_rect().collidepoint(pos):
@@ -123,6 +147,7 @@ class MenuScene(BaseScene):
         for tab_id in self.HELP_TABS:
             if self._help_tab_rect(tab_id).collidepoint(pos):
                 self.help_tab = tab_id
+                self.skill_detail_scroll = 0
                 if tab_id == "skills":
                     self._ensure_help_selection()
                 return
@@ -139,7 +164,21 @@ class MenuScene(BaseScene):
         for index, skill_id in enumerate(self._skills_for_group(self.selected_help_group)):
             if self._skill_button_rect(index).collidepoint(pos):
                 self.selected_help_skill_id = skill_id
+                self.skill_detail_scroll = 0
                 return
+
+    def _handle_help_scroll(self, delta_y: int) -> None:
+        if self.help_tab != "skills":
+            return
+        detail_rect = self._skill_detail_rect()
+        if not detail_rect.collidepoint(self.last_mouse_pos):
+            return
+        visible_height = detail_rect.height - 20
+        max_scroll = max(0, self.skill_detail_content_height - visible_height)
+        if max_scroll <= 0:
+            self.skill_detail_scroll = 0
+            return
+        self.skill_detail_scroll = min(max(0, self.skill_detail_scroll - delta_y * 28), max_scroll)
 
     def _ensure_help_selection(self, group_id: str | None = None) -> None:
         if group_id is not None:
@@ -147,13 +186,14 @@ class MenuScene(BaseScene):
         skill_ids = self._skills_for_group(self.selected_help_group)
         if self.selected_help_skill_id not in skill_ids:
             self.selected_help_skill_id = skill_ids[0] if skill_ids else None
+        self.skill_detail_scroll = 0
 
     def _skills_for_group(self, group_id: str) -> list[str]:
         return [skill_id for skill_id, skill in self.app.skill_defs.items() if skill.group == group_id]
 
     def _update_hovered(self, mouse_pos: tuple[int, int]) -> None:
         self.hovered_button = None
-        for button_id, (_, offset_y) in self.BUTTON_LAYOUT.items():
+        for button_id, offset_y in self.BUTTON_OFFSETS.items():
             if self._button_rect(offset_y).collidepoint(mouse_pos):
                 self.hovered_button = button_id
                 break
@@ -275,7 +315,7 @@ class MenuScene(BaseScene):
             "\u653b\u51fb\uff1a\u6280\u80fd\u4f1a\u81ea\u52a8\u91ca\u653e\uff0c\u9700\u8981\u8dd1\u4f4d\u4e0e\u8e72\u907f",
             "\u5347\u7ea7\uff1a\u5f39\u51fa\u5f3a\u5316\u9762\u677f\u540e\uff0c\u6309 1 / 2 / 3 \u9009\u62e9",
             "\u5f00\u5c40\uff1a\u6bcf\u5173\u4f1a\u5148\u67e5\u770b\u672c\u5173 5 \u4e2a\u6280\u80fd\uff0c\u5173\u95ed\u540e\u9009\u8d77\u59cb\u6280\u80fd",
-            "\u8fd4\u56de\uff1a\u6e38\u620f\u4e2d\u6309 Esc \u56de\u5230\u83dc\u5355",
+            "\u663e\u793a\uff1a\u4e3b\u83dc\u5355\u53ef\u4ee5\u5728\u7a97\u53e3\u4e0e\u5168\u5c4f\u95f4\u5207\u6362",
         ]
         for index, line in enumerate(lines):
             text = body_font.render(line, True, (223, 230, 238))
@@ -302,81 +342,79 @@ class MenuScene(BaseScene):
             active = skill_id == self.selected_help_skill_id
             pygame.draw.rect(surface, (60, 82, 110) if active else (30, 39, 52), rect, border_radius=12)
             pygame.draw.rect(surface, (122, 150, 192), rect, 1, border_radius=12)
+            icon_rect = pygame.Rect(rect.x + 6, rect.y + 5, 30, 30)
+            icon = build_skill_icon_surface(self.app.skill_defs[skill_id], 24, self.app.resources)
+            surface.blit(icon, icon.get_rect(center=icon_rect.center))
             text = body_font.render(self.app.skill_defs[skill_id].name, True, (232, 238, 245))
-            surface.blit(text, text.get_rect(center=rect.center))
+            surface.blit(text, (rect.x + 42, rect.y + 12))
 
         if not self.selected_help_skill_id:
             return
 
-        detail = build_skill_detail_view(self.app.skill_defs[self.selected_help_skill_id])
+        skill = self.app.skill_defs[self.selected_help_skill_id]
+        layout = build_skill_detail_layout(skill, self._skill_detail_rect().width - 20, self.app.resources)
+        self.skill_detail_content_height = layout.content_height
         detail_rect = self._skill_detail_rect()
         pygame.draw.rect(surface, (17, 23, 31), detail_rect, border_radius=16)
         pygame.draw.rect(surface, (94, 122, 164), detail_rect, 1, border_radius=16)
 
-        self._draw_skill_icon(surface, detail.icon_path, pygame.Rect(detail_rect.x + 22, detail_rect.y + 20, 72, 72))
+        viewport_rect = pygame.Rect(detail_rect.x + 10, detail_rect.y + 10, detail_rect.width - 26, detail_rect.height - 20)
+        content_height = max(viewport_rect.height, layout.content_height)
+        content_surface = pygame.Surface((viewport_rect.width, content_height), pygame.SRCALPHA)
 
-        name_text = title_font.render(detail.name, True, (242, 231, 194))
-        group_text = small_font.render(detail.group_label, True, (174, 191, 213))
-        summary_lines = self._wrap_text(detail.summary_line, body_font, detail_rect.width - 126)
-        surface.blit(name_text, (detail_rect.x + 108, detail_rect.y + 22))
-        surface.blit(group_text, (detail_rect.x + 108, detail_rect.y + 50))
-        for index, line in enumerate(summary_lines[:2]):
+        icon = build_skill_icon_surface(skill, 62, self.app.resources)
+        content_surface.blit(icon, icon.get_rect(center=(54, 52)))
+
+        name_text = title_font.render(layout.name, True, (242, 231, 194))
+        group_text = small_font.render(layout.group_label, True, (174, 191, 213))
+        content_surface.blit(name_text, (96, 12))
+        content_surface.blit(group_text, (96, 40))
+
+        for index, line in enumerate(layout.summary_lines):
             text = small_font.render(line, True, (210, 220, 233))
-            surface.blit(text, (detail_rect.x + 108, detail_rect.y + 74 + index * 18))
+            content_surface.blit(text, (96, 64 + index * 18))
 
-        info_y = detail_rect.y + 116
-        for line in detail.mechanic_lines:
-            text = small_font.render("\u2022 " + line, True, (196, 208, 220))
-            surface.blit(text, (detail_rect.x + 24, info_y))
-            info_y += 20
+        y = 108
+        for line in layout.mechanic_lines:
+            text = small_font.render(line, True, (196, 208, 220))
+            content_surface.blit(text, (14, y))
+            y += 20
 
-        level_y = info_y + 4
-        for level in (1, 2, 3):
+        for level, lines in layout.level_sections:
             header = small_font.render(f"Lv.{level}", True, (236, 241, 248))
-            surface.blit(header, (detail_rect.x + 24, level_y))
-            level_y += 18
-            summary = "\u3001".join(detail.level_lines[level])
-            for line in self._wrap_text(summary, small_font, detail_rect.width - 58)[:2]:
+            content_surface.blit(header, (14, y))
+            y += 20
+            for line in lines:
                 text = small_font.render(line, True, (181, 195, 210))
-                surface.blit(text, (detail_rect.x + 40, level_y))
-                level_y += 18
-            level_y += 6
+                content_surface.blit(text, (28, y))
+                y += 18
+            y += 6
 
-        footer = small_font.render("\u70b9\u51fb\u5de6\u4fa7\u6280\u80fd\u6309\u94ae\u53ef\u5207\u6362\u8be6\u60c5", True, (158, 173, 190))
+        clipped_surface = content_surface.subsurface(
+            pygame.Rect(0, self.skill_detail_scroll, viewport_rect.width, viewport_rect.height)
+        )
+        surface.blit(clipped_surface, viewport_rect.topleft)
+        self._draw_scrollbar(surface, viewport_rect, content_height)
+
+        footer = small_font.render("\u9f20\u6807\u79fb\u5165\u8be6\u60c5\u533a\u540e\u53ef\u7528\u6eda\u8f6e\u67e5\u770b\u66f4\u591a\u5185\u5bb9", True, (158, 173, 190))
         surface.blit(footer, footer.get_rect(center=(detail_rect.centerx, panel_rect.bottom - 52)))
 
-    def _draw_skill_icon(self, surface, icon_path, rect) -> None:
+    def _draw_scrollbar(self, surface, viewport_rect, content_height: int) -> None:
         pygame = require_pygame()
-        pygame.draw.rect(surface, (43, 55, 72), rect, border_radius=14)
-        pygame.draw.rect(surface, (103, 128, 168), rect, 2, border_radius=14)
-        image = self.app.resources.get_image(icon_path) if icon_path else None
-        if image is not None:
-            scaled = pygame.transform.smoothscale(image, (rect.width - 10, rect.height - 10))
-            surface.blit(scaled, scaled.get_rect(center=rect.center))
+        if content_height <= viewport_rect.height:
             return
-
-        placeholder_font = self.app.resources.get_font(14)
-        text = placeholder_font.render("\u56fe\u6807", True, (216, 227, 240))
-        surface.blit(text, text.get_rect(center=rect.center))
-
-    def _wrap_text(self, text: str, font, max_width: int) -> list[str]:
-        wrapped: list[str] = []
-        current = ""
-        for char in text:
-            candidate = current + char
-            if current and font.size(candidate)[0] > max_width:
-                wrapped.append(current)
-                current = char
-            else:
-                current = candidate
-        if current:
-            wrapped.append(current)
-        return wrapped
+        bar_rect = pygame.Rect(viewport_rect.right + 4, viewport_rect.y, 8, viewport_rect.height)
+        pygame.draw.rect(surface, (35, 44, 58), bar_rect, border_radius=8)
+        thumb_height = max(24, int(viewport_rect.height * viewport_rect.height / content_height))
+        max_scroll = max(1, content_height - viewport_rect.height)
+        thumb_y = int(bar_rect.y + (self.skill_detail_scroll / max_scroll) * (bar_rect.height - thumb_height))
+        thumb_rect = pygame.Rect(bar_rect.x + 1, thumb_y, bar_rect.width - 2, thumb_height)
+        pygame.draw.rect(surface, (120, 145, 182), thumb_rect, border_radius=8)
 
     def _help_panel_rect(self):
         pygame = require_pygame()
         config = self.app.config
-        return pygame.Rect(config.width // 2 - 370, config.height // 2 - 210, 740, 420)
+        return pygame.Rect(config.width // 2 - 370, config.height // 2 - 215, 740, 430)
 
     def _help_tab_rect(self, tab_id: str):
         pygame = require_pygame()
@@ -407,9 +445,9 @@ class MenuScene(BaseScene):
     def _skill_detail_rect(self):
         pygame = require_pygame()
         panel_rect = self._help_panel_rect()
-        return pygame.Rect(panel_rect.x + 210, panel_rect.y + 154, 500, 200)
+        return pygame.Rect(panel_rect.x + 210, panel_rect.y + 154, 500, 220)
 
     def _help_close_rect(self):
         pygame = require_pygame()
         panel_rect = self._help_panel_rect()
-        return pygame.Rect(panel_rect.centerx - 54, panel_rect.bottom - 44, 108, 34)
+        return pygame.Rect(panel_rect.centerx - 54, panel_rect.bottom - 42, 108, 34)

@@ -8,15 +8,7 @@ from game.entities.pickup import Pickup
 from game.entities.player import Player
 from game.entities.projectile import Projectile
 from game.models.definitions import SkillDef
-
-
-SKILL_COLORS = {
-    "fire_talisman": (255, 135, 92),
-    "thunder_mark": (255, 240, 135),
-    "frost_sand": (133, 209, 255),
-    "spirit_orb": (198, 157, 255),
-    "ward_shard": (156, 245, 214),
-}
+from game.ui.skill_views import SKILL_COLORS
 
 
 class CombatSystem:
@@ -61,12 +53,13 @@ class CombatSystem:
                             direction=(1.0, 0.0),
                             speed=0.0,
                             skill=skill,
-                            lifetime=skill.duration,
-                            color=SKILL_COLORS.get(skill_id, (255, 255, 255)),
-                            owner_faction=player.faction,
-                            angle=angle,
-                        )
+                        lifetime=skill.duration,
+                        color=SKILL_COLORS.get(skill_id, (255, 255, 255)),
+                        owner_faction=player.faction,
+                        angle=angle,
+                        uses_lifetime=True,
                     )
+                )
                 player.skill_timers[skill_id] = skill.cooldown
                 continue
 
@@ -83,6 +76,7 @@ class CombatSystem:
                         lifetime=skill.duration,
                         color=color,
                         owner_faction=player.faction,
+                        uses_lifetime=False,
                     )
                 )
             player.skill_timers[skill_id] = skill.cooldown

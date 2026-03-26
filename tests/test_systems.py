@@ -155,6 +155,42 @@ class SystemTests(unittest.TestCase):
         self.assertGreater(gained_exp, 0)
         self.assertFalse(pickup.is_alive())
 
+    def test_normal_projectile_is_not_removed_only_by_time_before_leaving_bounds(self) -> None:
+        projectile = Projectile(
+            x=50,
+            y=50,
+            direction=(1, 0),
+            speed=0,
+            skill=self.skill_defs["fire_talisman"],
+            lifetime=0.05,
+            color=(255, 255, 255),
+            owner_faction="player",
+            uses_lifetime=False,
+        )
+        combat = CombatSystem()
+
+        combat.update_projectiles([projectile], 1.0, (0, 0, 100, 100), Player(0, 0, PlayerStats()), [])
+
+        self.assertTrue(projectile.is_alive())
+
+    def test_orbit_projectile_still_expires_by_lifetime(self) -> None:
+        projectile = Projectile(
+            x=50,
+            y=50,
+            direction=(1, 0),
+            speed=0,
+            skill=self.skill_defs["ward_shard"],
+            lifetime=0.05,
+            color=(255, 255, 255),
+            owner_faction="player",
+            uses_lifetime=True,
+        )
+        combat = CombatSystem()
+
+        combat.update_projectiles([projectile], 0.1, (0, 0, 100, 100), Player(0, 0, PlayerStats()), [])
+
+        self.assertFalse(projectile.is_alive())
+
     def test_progression_cycle_pools_cover_all_twenty_skills_without_duplicates(self) -> None:
         progression = ProgressionSystem(self.skill_defs, rng=random.Random(5))
 

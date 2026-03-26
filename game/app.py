@@ -21,7 +21,8 @@ class GameApp:
         pygame.init()
 
         self.config = config or GameConfig()
-        self.screen = pygame.display.set_mode((self.config.width, self.config.height))
+        self.is_fullscreen = False
+        self.screen = self._create_display_surface()
         self.clock = pygame.time.Clock()
         self.resources = ResourceCache()
         self.input_state = InputState()
@@ -37,6 +38,15 @@ class GameApp:
 
         self.current_scene = None
         self.change_scene("menu")
+
+    def toggle_fullscreen(self) -> None:
+        self.is_fullscreen = not self.is_fullscreen
+        self.screen = self._create_display_surface()
+
+    def _create_display_surface(self):
+        pygame = require_pygame()
+        flags = pygame.FULLSCREEN if self.is_fullscreen else 0
+        return pygame.display.set_mode((self.config.width, self.config.height), flags)
 
     def change_scene(self, scene_name: str, **kwargs: object) -> None:
         scene_map = {

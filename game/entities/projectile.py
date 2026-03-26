@@ -19,6 +19,7 @@ class Projectile(Entity):
         color: tuple[int, int, int],
         owner_faction: str,
         angle: float = 0.0,
+        uses_lifetime: bool = True,
     ) -> None:
         dx, dy = direction
         length = math.hypot(dx, dy) or 1.0
@@ -36,6 +37,7 @@ class Projectile(Entity):
         self.damage = skill.damage
         self.skill = skill
         self.lifetime = lifetime if lifetime is not None else skill.duration
+        self.uses_lifetime = uses_lifetime
         self.owner_skill = skill.id
         self.angle = angle
         self.hit_cooldowns: dict[int, float] = {}
@@ -63,9 +65,10 @@ class Projectile(Entity):
                     self.vy += (desired_vy - self.vy) * turn
             super().update(dt)
 
-        self.lifetime -= dt
-        if self.lifetime <= 0:
-            self.alive = False
+        if self.uses_lifetime:
+            self.lifetime -= dt
+            if self.lifetime <= 0:
+                self.alive = False
         for target_id in list(self.hit_cooldowns):
             self.hit_cooldowns[target_id] = max(0.0, self.hit_cooldowns[target_id] - dt)
             if self.hit_cooldowns[target_id] == 0:

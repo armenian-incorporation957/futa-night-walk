@@ -10,6 +10,7 @@ from game.content.waves_loader import load_waves
 from game.core.config import GameConfig
 from game.core.input import InputState
 from game.core.pygame_support import require_pygame
+from game.core.resources import ResourceCache
 from game.scenes.game_over_scene import GameOverScene
 from game.scenes.menu_scene import MenuScene
 from game.scenes.run_scene import RunScene
@@ -36,8 +37,12 @@ class _DummyApp:
         self.enemy_defs = load_enemies(DATA_DIR / "enemies.json")
         self.skill_defs = load_skills(DATA_DIR / "skills.json")
         self.waves = load_waves(DATA_DIR / "waves.json")
-        self.resources = None
+        self.resources = ResourceCache()
         self.leaderboard = _DummyLeaderboard()
+        self.is_fullscreen = False
+
+    def toggle_fullscreen(self) -> None:
+        self.is_fullscreen = not self.is_fullscreen
 
 
 class SceneTests(unittest.TestCase):
@@ -73,7 +78,7 @@ class SceneTests(unittest.TestCase):
 
     def test_menu_scene_help_toggles_popup(self) -> None:
         scene = MenuScene(self.app)
-        rect = scene._button_rect(90)
+        rect = scene._button_rect(scene.BUTTON_OFFSETS["help"])
 
         self._click(scene, rect.center)
         self.assertTrue(scene.show_help)
@@ -101,6 +106,25 @@ class SceneTests(unittest.TestCase):
 
         self.assertEqual(scene.selected_help_group, "burst")
         self.assertIn(scene.selected_help_skill_id, scene._skills_for_group("burst"))
+
+    def test_menu_scene_display_button_toggles_fullscreen_state(self) -> None:
+        scene = MenuScene(self.app)
+        rect = scene._button_rect(scene.BUTTON_OFFSETS["display"])
+
+        self._click(scene, rect.center)
+
+        self.assertTrue(self.app.is_fullscreen)
+
+    def test_menu_scene_skill_help_scrolls_inside_detail_rect(self) -> None:
+        scene = MenuScene(self.app)
+        scene.show_help = True
+        scene.help_tab = "skills"
+        scene.skill_detail_content_height = 520
+        scene.last_mouse_pos = scene._skill_detail_rect().center
+
+        scene._handle_help_scroll(-1)
+
+        self.assertGreater(scene.skill_detail_scroll, 0)
 
     def test_menu_scene_enter_no_longer_starts_game(self) -> None:
         scene = MenuScene(self.app)
