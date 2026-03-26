@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
+import game.scenes.run_scene as run_scene_module
 from game.content.enemies_loader import load_enemies
 from game.content.skills_loader import load_skills
 from game.content.waves_loader import load_waves
@@ -29,6 +30,9 @@ class _DummyApp:
 class SceneTests(unittest.TestCase):
     def setUp(self) -> None:
         self.app = _DummyApp()
+
+    def test_run_scene_imports_pygame_helper(self) -> None:
+        self.assertTrue(callable(run_scene_module.require_pygame))
 
     def test_menu_scene_requests_run(self) -> None:
         scene = MenuScene(self.app)

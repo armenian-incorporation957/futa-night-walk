@@ -4,6 +4,7 @@ from game.entities.enemy import Enemy
 from game.entities.pickup import Pickup
 from game.entities.player import Player
 from game.entities.projectile import Projectile
+from game.core.pygame_support import require_pygame
 from game.models.definitions import PlayerStats, RunState
 from game.scenes.base_scene import BaseScene
 from game.systems.combat_system import CombatSystem
