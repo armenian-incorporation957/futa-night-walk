@@ -1,0 +1,46 @@
+[
+  {
+    "id": "fire_talisman",
+    "name": "火符",
+    "cooldown": 0.45,
+    "damage": 10,
+    "projectile_speed": 360,
+    "behavior_type": "bolt"
+  },
+  {
+    "id": "thunder_mark",
+    "name": "雷印",
+    "cooldown": 0.9,
+    "damage": 24,
+    "projectile_speed": 440,
+    "behavior_type": "bolt"
+  },
+  {
+    "id": "frost_sand",
+    "name": "冰砂",
+    "cooldown": 1.1,
+    "damage": 9,
+    "projectile_speed": 300,
+    "behavior_type": "spread",
+    "shots": 3,
+    "spread_angle": 16
+  },
+  {
+    "id": "spirit_orb",
+    "name": "灵珠",
+    "cooldown": 0.75,
+    "damage": 14,
+    "projectile_speed": 280,
+    "behavior_type": "bolt"
+  },
+  {
+    "id": "ward_shard",
+    "name": "护身咒",
+    "cooldown": 1.4,
+    "damage": 18,
+    "projectile_speed": 250,
+    "behavior_type": "spread",
+    "shots": 2,
+    "spread_angle": 28
+  }
+]
